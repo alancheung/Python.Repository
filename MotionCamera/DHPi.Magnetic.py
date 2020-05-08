@@ -96,11 +96,14 @@ def WARM_WHITE(brightness):
 def powerStateString(device):
     if device is None:
         return "UNKNOWN"
-
     powerLevel = device.power_level
-    if powerLevel == 0:
+    log(f"Device ({device.label}) power level is {powerLevel}")
+    if powerLevel is None:
+        return "UNKNOWN"
+    elif powerLevel == 0:
         return "OFF"
     else:
+        # can be a range from 0 to 65535
         return "ON"
 
 def sync(force = False, lastDoorState = None):
@@ -130,6 +133,7 @@ def sync(force = False, lastDoorState = None):
         # "If the last sync didn't fail or the sync did fail and this light failed, then update"
         if lastSyncFailed == False or powerStateString(officeOne) == "UNKNOWN":
             officeOne = lifx.get_device_by_name("Office One")
+            officeOne.get_power()
             log(f"officeOne({powerStateString(officeOne)}) synced!")
             if (shouldInterruptSync(lastDoorState)):
                 log("Sync interrupted!", True)
@@ -137,6 +141,7 @@ def sync(force = False, lastDoorState = None):
 
         if lastSyncFailed == False or powerStateString(officeTwo) == "UNKNOWN":
             officeTwo = lifx.get_device_by_name("Office Two")
+            officeTwo.get_power()
             log(f"officeTwo({powerStateString(officeTwo)}) synced!")
             if (shouldInterruptSync(lastDoorState)):
                 log("Sync interrupted!", True)
@@ -144,16 +149,18 @@ def sync(force = False, lastDoorState = None):
 
         if lastSyncFailed == False or powerStateString(officeThree) == "UNKNOWN":
             officeThree = lifx.get_device_by_name("Office Three")
+            officeThree.get_power()
             log(f"officeThree({powerStateString(officeThree)}) synced!")
 
         log(f"Sync Status ({doorStateText(lastDoorState)}) - [officeOne({powerStateString(officeOne)}) :: officeTwo({powerStateString(officeTwo)}) :: officeThree({powerStateString(officeThree)})]", True)
+        log(f"{str(officeOne)}\n{str(officeTwo)}\n{str(officeThree)}")
         if powerStateString(officeOne) == "UNKNOWN" or powerStateString(officeTwo) == "UNKNOWN" or powerStateString(officeThree) == "UNKNOWN":
             raise ConnectionError("One or more lights were not connected!")
 
         lastSyncFailed = False
         lastSyncTime = datetime.now()
     except Exception as ex:
-        err(f'Sync failed ({type(ex).__name__})! Last successful sync at {lastSyncTime.strftime("%X")}!')
+        err(f'Sync failed ({str(ex)})! Last successful sync at {lastSyncTime.strftime("%X")}!')
         lastSyncFailed = True
         lastSyncTime = datetime.now()
 
@@ -244,17 +251,6 @@ def handleClose():
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet=True)
 lifx = LifxLAN(7)
-sync(True)
-
-if debug == False and (officeOne == None or officeTwo == None or officeThree == None):
-    log(f"Did not discover all office lights! OfficeOne({officeOne is not None}), OfficeTwo({officeTwo is not None}), OfficeThree({officeThree is not None})", displayWhenQuiet = True)
-    devices = lifx.get_lights()
-    print("\nFound {} light(s):\n".format(len(devices)))
-    for d in devices:
-        try:
-        	print(d)
-        except:
-            pass
 
 try:
     with open("/home/pi/Desktop/OfficeSensor/timestones.json") as timestoneFile:
@@ -281,6 +277,18 @@ if isDoorOpen:
 else:
     lastClosed = datetime.now()
     log("Door initialized as CLOSED!")
+
+# Perform sync after door state known
+sync(True, isDoorOpen)
+if debug == False and (officeOne == None or officeTwo == None or officeThree == None):
+    log(f"Did not discover all office lights! OfficeOne({officeOne is not None}), OfficeTwo({officeTwo is not None}), OfficeThree({officeThree is not None})", displayWhenQuiet = True)
+    devices = lifx.get_lights()
+    print("\nFound {} light(s):\n".format(len(devices)))
+    for d in devices:
+        try:
+        	print(d)
+        except:
+            pass
 
 # ------------------------- DEFINE RUN -------------------------------
 log("Initialized!", displayWhenQuiet = True)
@@ -313,8 +321,10 @@ try:
         except WorkflowException:
             err("Light Communication Error")
             pass
-        except Exception as ex:
-            err(f"Unexpected exception ({type(ex).__name__}), ignoring! {str(ex)}")
+        except KeyboardInterrupt:
+            raise
+        except Exception as runEx:
+            err(f"Unexpected exception during run, ignoring! {str(runEx)}")
             pass
 except KeyboardInterrupt:
     err("KeyboardInterrupt caught!")
