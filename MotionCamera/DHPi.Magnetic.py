@@ -152,9 +152,10 @@ def sync(force = False, lastDoorState = None):
             officeThree.get_power()
             log(f"officeThree({powerStateString(officeThree)}) synced!")
 
-        log(f"Sync Status ({doorStateText(lastDoorState)}) - [officeOne({powerStateString(officeOne)}) :: officeTwo({powerStateString(officeTwo)}) :: officeThree({powerStateString(officeThree)})]", True)
+        anyUnknown = powerStateString(officeOne) == "UNKNOWN" or powerStateString(officeTwo) == "UNKNOWN" or powerStateString(officeThree) == "UNKNOWN"
+        log(f"Sync Status ({doorStateText(lastDoorState)}) - [officeOne({powerStateString(officeOne)}) :: officeTwo({powerStateString(officeTwo)}) :: officeThree({powerStateString(officeThree)})]", anyUnknown)
         log(f"{str(officeOne)}\n{str(officeTwo)}\n{str(officeThree)}")
-        if powerStateString(officeOne) == "UNKNOWN" or powerStateString(officeTwo) == "UNKNOWN" or powerStateString(officeThree) == "UNKNOWN":
+        if anyUnknown:
             raise ConnectionError("One or more lights were not connected!")
 
         lastSyncFailed = False
