@@ -287,28 +287,35 @@ log("Initialized!", displayWhenQuiet = True)
 log("Running...", displayWhenQuiet = True)
 try:
     while True:
-        lastState = isDoorOpen
-        sync(lastDoorState = lastState)
-        isDoorOpen = GPIO.input(sensorPin)
+        try:
+            lastState = isDoorOpen
+            sync(lastDoorState = lastState)
+            isDoorOpen = GPIO.input(sensorPin)
 
-        if lastState != isDoorOpen:
-            if(isDoorOpen):
-                handleOpen()
-            else:
-                # listen for awhile to determine if this is a freak disconnect
-                freakDisconnect = False
-                start = datetime.now()
-                while freakDisconnect == False and (datetime.now() - start).seconds < resetTime:
-                    isDoorOpen = GPIO.input(sensorPin)
-                    freakDisconnect = isDoorOpen
-
-                # done listening, should I turn off lights?
-                if freakDisconnect == True:
-                    log(f"Ignoring close event because of sensor reset in {(datetime.now() - start).seconds}s!", True)
+            if lastState != isDoorOpen:
+                if(isDoorOpen):
+                    handleOpen()
                 else:
-                    handleClose()
-        elif (lastFailedOffTime != None and (lastFailedOffTime - datetime.now()).seconds < (syncTime / 5)):
-            lightOffSequence()
+                    # listen for awhile to determine if this is a freak disconnect
+                    freakDisconnect = False
+                    start = datetime.now()
+                    while freakDisconnect == False and (datetime.now() - start).seconds < resetTime:
+                        isDoorOpen = GPIO.input(sensorPin)
+                        freakDisconnect = isDoorOpen
+
+                    # done listening, should I turn off lights?
+                    if freakDisconnect == True:
+                        log(f"Ignoring close event because of sensor reset in {(datetime.now() - start).seconds}s!", True)
+                    else:
+                        handleClose()
+            elif (lastFailedOffTime != None and (lastFailedOffTime - datetime.now()).seconds < (syncTime / 5)):
+                lightOffSequence()
+        except WorkflowException:
+            err("Light Communication Error")
+            pass
+        except Exception as ex:
+            err(f"Unexpected exception ({type(ex).__name__}), ignoring! {str(ex)}")
+            pass
 except KeyboardInterrupt:
     err("KeyboardInterrupt caught!")
 except Exception as ex:
