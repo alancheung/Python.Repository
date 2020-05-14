@@ -22,7 +22,7 @@ argParser = argparse.ArgumentParser()
 argParser.add_argument("-p", "--pin-sensor", type=int, default=37, help="Board GPIO pin that sensor is connected to.")
 argParser.add_argument("-o", "--open-time", type=int, default=15, help="Number of seconds since door open event to ignore lights off.")
 argParser.add_argument("-r", "--reset-time", type=int, default=3, help="Workaround for intermittent sensor disconnects. Number of seconds to ignore close event.")
-argParser.add_argument("-l", "--light-sync-time", type=int, default=900, help="Workaround for intermittent light disconnects. Number of seconds before syncing with lights again.")
+argParser.add_argument("-l", "--light-sync-time", type=int, default=3600, help="Workaround for intermittent light disconnects. Number of seconds before syncing with lights again.")
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
 argParser.add_argument('--debug', dest='debug', action='store_true', help="Disable light actions")
 argParser.add_argument('--file', dest='file', action='store_true', help="Log to file instead of console.")
@@ -59,7 +59,6 @@ work_start = None
 work_end = None
 afternoon_dimmer = None
 
-lastSyncFailed = False
 lastFailedOffTime = None
 
 # ------------------------- DEFINE FUNCTIONS -------------------------
@@ -107,13 +106,10 @@ def powerStateString(device):
         return "ON"
 
 def sync(force = False, lastDoorState = None):
-    global lastSyncFailed
     global lastSyncTime
 
     if force == False: 
-        # Shorter reset when last failed
-        if lastSyncFailed == True and (datetime.now() - lastSyncTime).seconds < (syncTime / 5): return
-        elif lastSyncFailed == False and (datetime.now() - lastSyncTime).seconds < syncTime: return 
+        if (datetime.now() - lastSyncTime).seconds < syncTime: return 
     if debug == True:
         lastSyncTime = datetime.now()
         return
@@ -131,7 +127,7 @@ def sync(force = False, lastDoorState = None):
             return
     
         # "If the last sync didn't fail or the sync did fail and this light failed, then update"
-        if lastSyncFailed == False or powerStateString(officeOne) == "UNKNOWN":
+        if powerStateString(officeOne) == "UNKNOWN":
             officeOne = lifx.get_device_by_name("Office One")
             officeOne.get_power()
             log(f"officeOne({powerStateString(officeOne)}) synced!")
@@ -139,7 +135,7 @@ def sync(force = False, lastDoorState = None):
                 log("Sync interrupted!", True)
                 return
 
-        if lastSyncFailed == False or powerStateString(officeTwo) == "UNKNOWN":
+        if powerStateString(officeTwo) == "UNKNOWN":
             officeTwo = lifx.get_device_by_name("Office Two")
             officeTwo.get_power()
             log(f"officeTwo({powerStateString(officeTwo)}) synced!")
@@ -147,7 +143,7 @@ def sync(force = False, lastDoorState = None):
                 log("Sync interrupted!", True)
                 return
 
-        if lastSyncFailed == False or powerStateString(officeThree) == "UNKNOWN":
+        if powerStateString(officeThree) == "UNKNOWN":
             officeThree = lifx.get_device_by_name("Office Three")
             officeThree.get_power()
             log(f"officeThree({powerStateString(officeThree)}) synced!")
@@ -158,11 +154,9 @@ def sync(force = False, lastDoorState = None):
         if anyUnknown:
             raise ConnectionError("One or more lights were not connected!")
 
-        lastSyncFailed = False
         lastSyncTime = datetime.now()
     except Exception as ex:
-        err(f'Sync failed ({str(ex)})! Last successful sync at {lastSyncTime.strftime("%X")}!')
-        lastSyncFailed = True
+        err(f'Sync failed ({type(ex).__name__})! Last attempted sync at {lastSyncTime.strftime("%X")}! {str(ex)}')
         lastSyncTime = datetime.now()
 
 def shouldInterruptSync(lastDoorState):
