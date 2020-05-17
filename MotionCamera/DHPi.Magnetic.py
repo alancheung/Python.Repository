@@ -4,6 +4,7 @@ from datetime import datetime, time, timedelta
 from lifxlan import LifxLAN
 from time import sleep
 import json
+import requests
 
 import sys
 import argparse
@@ -23,6 +24,7 @@ argParser.add_argument("-p", "--pin-sensor", type=int, default=37, help="Board G
 argParser.add_argument("-o", "--open-time", type=int, default=15, help="Number of seconds since door open event to ignore lights off.")
 argParser.add_argument("-r", "--reset-time", type=int, default=3, help="Workaround for intermittent sensor disconnects. Number of seconds to ignore close event.")
 argParser.add_argument("-l", "--light-sync-time", type=int, default=3600, help="Workaround for intermittent light disconnects. Number of seconds before syncing with lights again.")
+argParser.add_argument("-server", default="", help="Server address to send log messages to")
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
 argParser.add_argument('--debug', dest='debug', action='store_true', help="Disable light actions")
 argParser.add_argument('--file', dest='file', action='store_true', help="Log to file instead of console.")
@@ -39,6 +41,7 @@ openTime = args["open_time"]
 quiet = args["quiet"]
 debug = args["debug"]
 file = args["file"]
+server = args["server"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 
@@ -219,6 +222,7 @@ def lightOffSequence():
 
 def handleOpen():
     log("Open:High")
+    sendToServer(True)
     now = datetime.now()
 
     global lastOpen
@@ -229,6 +233,7 @@ def handleOpen():
 
 def handleClose():
     log("Closed:Low")
+    sendToServer(False)
     now = datetime.now()
 
     global lastClosed
@@ -241,6 +246,16 @@ def handleClose():
         lightOffSequence()
     else:
         log(f"Not enough time ({timeSinceOpen.seconds}s) has passed to take action on CLOSE event.", True)
+
+def sendToServer(state):
+    if server != "":
+        try:
+            event = { "name": "OfficeDoor", "state": state }
+            req = requests.post(server, data = event)
+            if (req.status_code != 200):
+                raise ConnectionError(f"Request status code did not indicate success ({req.status_code})!");
+        except Exception as ex:
+            err(f"Could not send event to remote due to {type(ex).__name__}!")
 
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
@@ -313,18 +328,14 @@ try:
                         handleClose()
             elif (lastFailedOffTime != None and (lastFailedOffTime - datetime.now()).seconds < (syncTime / 5)):
                 lightOffSequence()
-        except WorkflowException:
-            err("Light Communication Error")
-            pass
         except KeyboardInterrupt:
             raise
         except Exception as runEx:
-            err(f"Unexpected exception during run, ignoring! {str(runEx)}")
-            pass
+            err(f"Unexpected exception during run, ignoring! {type(ex).__name__}: {str(runEx)}")
 except KeyboardInterrupt:
     err("KeyboardInterrupt caught!")
 except Exception as ex:
-    err(f"Unhandled exception ({type(ex).__name__}) caught!")
+    err(f"Unhandled exception ({type(ex).__name__}) caught! {str(ex)}")
 finally:
     err("Cleaning up...")
     GPIO.cleanup()

@@ -119,6 +119,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MotionCamera\DHPi.py" />
+    <Compile Include="TestCode\httpRequestTest.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TestCode\lifxTester.py" />
     <Compile Include="TestCode\MagneticSensor\magneticSensor.py">
       <SubType>Code</SubType>
