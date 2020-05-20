@@ -250,7 +250,7 @@ def handleClose():
 def sendToServer(state):
     if server != "":
         try:
-            event = { "name": "OfficeDoor", "state": state }
+            event = { "Name": "OfficeDoor", "State": state }
             req = requests.post(server, data = event)
             if (req.status_code != 200):
                 raise ConnectionError(f"Request status code did not indicate success ({req.status_code})!");
