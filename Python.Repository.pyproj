@@ -33,6 +33,7 @@
     <Folder Include="WandTracker\WandTracker.Simple\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Common\.bash_aliases" />
     <Content Include="Common\timestones.json" />
     <Content Include="Common\__pycache__\ConsoleLogger.cpython-37.pyc" />
     <Content Include="Common\__pycache__\__init__.cpython-37.pyc" />
