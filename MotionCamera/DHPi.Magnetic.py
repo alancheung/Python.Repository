@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # ------------------------- DEFINE IMPORTS ---------------------------
 from __future__ import print_function
 from datetime import datetime, time, timedelta
@@ -70,7 +72,7 @@ def log(text, displayWhenQuiet = False):
         now = datetime.now().strftime("%x %X")
         message = f"{now}: {text}"
         if file:
-            with open("/home/pi/Desktop/OfficeSensor/sensor.log", "a") as fout:
+            with open("/home/pi/SensorPi//sensor.log", "a") as fout:
                 fout.write(f"{message}\n")
         else:
             print(message)
@@ -108,6 +110,16 @@ def powerStateString(device):
         # can be a range from 0 to 65535
         return "ON"
 
+def getLightForName(name):
+    try:
+        light = lifx.get_device_by_name(name)
+        light.get_power()
+        return light
+    except Exception as ex:
+        err(f'Could not determine light {name} due to error ({type(ex).__name__})!')
+        return None
+
+
 def sync(force = False, lastDoorState = None):
     global lastSyncTime
 
@@ -131,24 +143,21 @@ def sync(force = False, lastDoorState = None):
     
         # "If the last sync didn't fail or the sync did fail and this light failed, then update"
         if powerStateString(officeOne) == "UNKNOWN":
-            officeOne = lifx.get_device_by_name("Office One")
-            officeOne.get_power()
+            officeOne = getLightForName("Office One")
             log(f"officeOne({powerStateString(officeOne)}) synced!")
             if (shouldInterruptSync(lastDoorState)):
                 log("Sync interrupted!", True)
                 return
 
         if powerStateString(officeTwo) == "UNKNOWN":
-            officeTwo = lifx.get_device_by_name("Office Two")
-            officeTwo.get_power()
+            officeTwo = getLightForName("Office Two")
             log(f"officeTwo({powerStateString(officeTwo)}) synced!")
             if (shouldInterruptSync(lastDoorState)):
                 log("Sync interrupted!", True)
                 return
 
         if powerStateString(officeThree) == "UNKNOWN":
-            officeThree = lifx.get_device_by_name("Office Three")
-            officeThree.get_power()
+            officeThree = getLightForName("Office Three")
             log(f"officeThree({powerStateString(officeThree)}) synced!")
 
         anyUnknown = powerStateString(officeOne) == "UNKNOWN" or powerStateString(officeTwo) == "UNKNOWN" or powerStateString(officeThree) == "UNKNOWN"
@@ -263,11 +272,11 @@ log(f"Args: {args}", displayWhenQuiet=True)
 lifx = LifxLAN(7)
 
 try:
-    with open("/home/pi/Desktop/OfficeSensor/timestones.json") as timestoneFile:
+    with open("/home/pi/SensorPi/timestones.json") as timestoneFile:
         timestones = json.load(timestoneFile)
         log("File loaded!")
 except FileNotFoundError:
-    err("'/home/pi/Desktop/OfficeSensor/timestones.json' could not be found!")
+    err("'/home/pi/SensorPi/timestones.json' could not be found!")
     sys.exit(-1)
 log(f"Timestones: {timestones}", displayWhenQuiet=True)
 
