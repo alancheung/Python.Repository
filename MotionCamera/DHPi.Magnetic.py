@@ -340,7 +340,7 @@ try:
         except KeyboardInterrupt:
             raise
         except Exception as runEx:
-            err(f"Unexpected exception during run, ignoring! {type(ex).__name__}: {str(runEx)}")
+            err(f"Unexpected exception during run, ignoring! {type(runEx).__name__}: {str(runEx)}")
 except KeyboardInterrupt:
     err("KeyboardInterrupt caught!")
 except Exception as ex:
