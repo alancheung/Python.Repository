@@ -25,6 +25,8 @@
     <Folder Include="Common\__pycache__\" />
     <Folder Include="MotionCamera\" />
     <Folder Include="MotionImages\" />
+    <Folder Include="DHT22\" />
+    <Folder Include="Office\" />
     <Folder Include="TestCode\" />
     <Folder Include="TestCode\MagneticSensor\" />
     <Folder Include="WandTracker\" />
@@ -116,10 +118,17 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Common\__init__.py" />
+    <Compile Include="DHT22\DHPi.DHT22.Sensor.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MotionCamera\DHPi.Magnetic.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MotionCamera\DHPi.py" />
+    <Compile Include="Office\jsonRequestTest.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Office\Office.Magnetic.py" />
     <Compile Include="TestCode\httpRequestTest.py">
       <SubType>Code</SubType>
     </Compile>

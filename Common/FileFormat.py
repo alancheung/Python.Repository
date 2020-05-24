@@ -31,6 +31,9 @@ def log(text, displayWhenQuiet = False):
         else:
             print(message)
 
+def err(text):
+    log(text, True)
+
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet = True)
