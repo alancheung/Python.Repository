@@ -82,8 +82,9 @@ def lightOnSequence():
     # If we're in the office for work then set correct color
     # Weekday Monday(0) - Sunday(6)
     if now.weekday() < 5 and is_between_time(now.time(), (work_start, work_end)):
+        # Ignore Office One because Kelly.
         lightOn = {
-	        "Lights": ["Office One", "Office Two", "Office Three"],
+	        "Lights": ["Office Two", "Office Three"],
 	        "TurnOn": "true",
 	        "Duration": 10000,
 	        "Hue": 0.88,
