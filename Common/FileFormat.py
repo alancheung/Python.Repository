@@ -26,12 +26,15 @@ def log(text, displayWhenQuiet = False):
         now = datetime.now().strftime("%H:%M:%S")
         message = f"{now}: {text}"
         if logFileName is not None:
-            with open(f"/home/pi/Desktop/{logFileName}", "a") as fout:
+            with open(f"/home/pi/Project/{logFileName}", "a") as fout:
                 fout.write(f"{message}\n")
         else:
             print(message)
 
 def err(text):
+    log(text, True)
+
+def alrt(text):
     log(text, True)
 
 # ------------------------- DEFINE INITIALIZE ------------------------
