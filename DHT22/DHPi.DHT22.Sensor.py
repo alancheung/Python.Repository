@@ -21,7 +21,7 @@ argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disab
 argParser.add_argument("-s", "--server", default="", help="Server address to send log messages to")
 argParser.add_argument("-l", "--location", default="", help="Location of the sensor")
 argParser.add_argument("-m", "--manufacturer", default="HiLetGo", help="DHT22 manufacturer")
-argParser.add_argument("-p", "--pin", type=int, default=17, help="Board GPIO pin that sensor is connected to.")
+argParser.add_argument("-p", "--pin", type=int, default=17, help="GPIO pin that sensor is connected to.")
 argParser.set_defaults(quiet=False)
 
 args = vars(argParser.parse_args())
