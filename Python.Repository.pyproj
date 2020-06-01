@@ -26,7 +26,9 @@
     <Folder Include="MotionCamera\" />
     <Folder Include="MotionImages\" />
     <Folder Include="DHT22\" />
+    <Folder Include="SoilMoisture\" />
     <Folder Include="Office\" />
+    <Folder Include="SoilMoisture\CircuitPython\" />
     <Folder Include="TestCode\" />
     <Folder Include="TestCode\MagneticSensor\" />
     <Folder Include="WandTracker\" />
@@ -129,6 +131,18 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Office\Office.Magnetic.py" />
+    <Compile Include="SoilMoisture\CircuitPython\Calibration.ADS1115.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SoilMoisture\Adfruit.Test.ADS1115.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SoilMoisture\CircuitPython\CircuitPython.Test.ADS1115.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SoilMoisture\CircuitPython\SoilMoisture.ADS1115.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TestCode\httpRequestTest.py">
       <SubType>Code</SubType>
     </Compile>
