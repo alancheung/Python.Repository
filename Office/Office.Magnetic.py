@@ -124,7 +124,7 @@ def sendAccessLog(state):
         try:
             log(f'Sending access log post to {server}')
             event = { "Name": "OfficeDoor", "State": state }
-            req = requests.post(f'{server}/api/sensor', data = event)
+            req = requests.post(f'{server}/api/portal', data = event)
             if (req.status_code != 200):
                 err(f"Request status code did not indicate success ({req.status_code})!");
         except Exception as ex:
