@@ -1,4 +1,4 @@
-# sudo pip3 install adafruit-circuipython-ads1x15
+# sudo pip3 install adafruit-circuitpython-ads1x15
 import time
 import board
 import busio
