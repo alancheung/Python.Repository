@@ -26,6 +26,8 @@
     <Folder Include="MotionCamera\" />
     <Folder Include="MotionImages\" />
     <Folder Include="DHT22\" />
+    <Folder Include="RaspberryPi\" />
+    <Folder Include="RaspberryPi\HeadlessBoot\" />
     <Folder Include="SoilMoisture\" />
     <Folder Include="Office\" />
     <Folder Include="SoilMoisture\CircuitPython\" />
@@ -37,10 +39,14 @@
     <Folder Include="WandTracker\WandTracker.Simple\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Common\.bash_aliases" />
+    <Content Include="RaspberryPi\.bash_aliases" />
     <Content Include="Common\timestones.json" />
     <Content Include="Common\__pycache__\ConsoleLogger.cpython-37.pyc" />
     <Content Include="Common\__pycache__\__init__.cpython-37.pyc" />
+    <Content Include="RaspberryPi\HeadlessBoot\ssh" />
+    <Content Include="RaspberryPi\HeadlessBoot\wpa_supplicant.conf">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="WandTracker\digits.png" />
     <Content Include="WandTracker\digits_svm.dat" />
     <Content Include="WandTracker\Shapes\circle\shape1-1.png" />
@@ -138,6 +144,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SoilMoisture\CircuitPython\CircuitPython.Test.ADS1115.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SoilMoisture\CircuitPython\CalibrationText.ADS1115.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SoilMoisture\CircuitPython\SoilMoisture.ADS1115.py">
