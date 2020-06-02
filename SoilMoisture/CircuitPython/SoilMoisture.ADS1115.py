@@ -2,6 +2,9 @@
 from __future__ import print_function
 from datetime import datetime
 import argparse
+import requests
+import socket
+import statistics
 
 import time
 import board
@@ -24,6 +27,9 @@ argParser.add_argument("-wval", "--wet-val", type=int, default=None, help="Wet r
 argParser.add_argument("-wvolt", "--wet-volt", type=float, default=None, help="Wet voltage value.", required=True)
 argParser.add_argument("-w", "--wet-threshold", type=int, default=15, help="The value at which the soil is considered excessively wet.")
 argParser.add_argument("-d", "--dry-threshold", type=int, default=75, help="The value at which the soil is considered excessively dry.")
+argParser.add_argument("-l", "--location", default=None, help="Location of the sensor", required=True)
+argParser.add_argument("-s", "--server", default="", help="Server address to send log messages to")
+argParser.add_argument("-m", "--manufacturer", default="Gikfun", help="Manufacturer of the sensor")
 argParser.set_defaults(quiet=False)
 
 # DryValue: 22528; DryVoltage: 2.812 // WetValue: 10477; WetVoltage: 1.309
@@ -38,6 +44,10 @@ wetVoltage = args["wet_volt"]
 
 wetThreshold = args["wet_threshold"]
 dryThreshold = args["dry_threshold"]
+
+server = args["server"]
+location = args["location"]
+manufacturer = args["manufacturer"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 # Create the I2C bus
@@ -67,10 +77,30 @@ def percent(num, high, low):
     return 100 * float(num - low) / float(high - low)
 
 def calcValue(value):
-    return percent(value, dryValue, wetValue)
+    return 100 - percent(value, dryValue, wetValue)
 
 def calcVoltage(voltage):
-    return percent(voltage, dryVoltage, wetVoltage)
+    return 100 - percent(voltage, dryVoltage, wetVoltage)
+
+def sendToServer(readingValue):
+    successful = True
+    if server != "":
+        try:
+            tempReading = { 
+                "SourceHostName": socket.gethostname(), 
+                "Location": location, 
+                "SensorModel": f"{manufacturer} EK1940", 
+                "ReadingType": "Moisture", 
+                "ReadingValue": readingValue
+            }
+            log(f'Sending soil moisture post to {server}')
+            req = requests.post(server, data = tempReading, timeout=30)
+            if (req.status_code != 200):
+                raise ConnectionError(f"Request status code did not indicate success ({req.status_code})!");
+        except Exception as ex:
+            err(f"Could not send reading to '{server}' due to {type(ex).__name__}! {str(ex)}")
+            successful = False
+    return successful
 
 
 # ------------------------- DEFINE INITIALIZE ------------------------
@@ -82,23 +112,17 @@ log("Initialized!", displayWhenQuiet = True)
 log("Running...", displayWhenQuiet = True)
 try:
     print(f"Value\tVoltage")
-    while True:
-        rawVal = chan.value
-        rawVoltage = chan.voltage
-        val = calcValue(rawVal)
-        volt = calcVoltage(rawVoltage)
-        
-        # If both values agree then it is that!
-        if val <= wetThreshold and volt <= wetThreshold:
-            log(f"Very wet! {val}% and {volt}%")
-        elif val >= dryThreshold and volt >= dryThreshold:
-            log(f"Very dry! {val}% and {volt}%")
-        # If one is dry and the other is wet then maybe retest sensor?
-        elif (val >= dryThreshold and volt <= wetThreshold) or (val <= wetThreshold and volt >= dryThreshold):
-            err(f"Sensor mismatch! RawADC:{rawVal}/({dryValue}-{wetValue}) vs Voltage{rawVoltage}/({dryVoltage}-{wetVoltage})")
-        # Maybe a little wet
-        else:
-            log(f"Damp! {val}% and {volt}%")
-        time.sleep(0.5)
+    rawVal = chan.value
+    rawVoltage = chan.voltage
+    val = calcValue(rawVal)
+    volt = calcVoltage(rawVoltage)
+
+    # If one is dry and the other is wet then maybe retest sensor?
+    if (val >= dryThreshold and volt <= wetThreshold) or (val <= wetThreshold and volt >= dryThreshold):
+        err(f"Sensor mismatch! RawADC:{rawVal}/({dryValue}-{wetValue}) vs Voltage{rawVoltage}/({dryVoltage}-{wetVoltage})")
+    else:
+        avg = statistics.mean([val, volt])
+        log(f'Moisture: {avg}%')
+        sendToServer(avg)
 except KeyboardInterrupt:
     log("KeyboardInterrupt caught! Cleaning up...")
