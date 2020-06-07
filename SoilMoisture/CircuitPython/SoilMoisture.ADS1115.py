@@ -5,7 +5,9 @@ import argparse
 import requests
 import socket
 import statistics
-
+import sys
+import os
+import json
 import time
 import board
 import busio
@@ -21,10 +23,6 @@ from adafruit_ads1x15.analog_in import AnalogIn
 argParser = argparse.ArgumentParser()
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
 argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
-argParser.add_argument("-dval", "--dry-val", type=int, default=None, help="Dry raw ADC value.", required=True)
-argParser.add_argument("-dvolt", "--dry-volt", type=float, default=None, help="Dry voltage value.", required=True)
-argParser.add_argument("-wval", "--wet-val", type=int, default=None, help="Wet raw ADC value.", required=True)
-argParser.add_argument("-wvolt", "--wet-volt", type=float, default=None, help="Wet voltage value.", required=True)
 argParser.add_argument("-w", "--wet-threshold", type=int, default=15, help="The value at which the soil is considered excessively wet.")
 argParser.add_argument("-d", "--dry-threshold", type=int, default=75, help="The value at which the soil is considered excessively dry.")
 argParser.add_argument("-l", "--location", default=None, help="Location of the sensor", required=True)
@@ -36,11 +34,6 @@ argParser.set_defaults(quiet=False)
 args = vars(argParser.parse_args())
 quiet = args["quiet"]
 logFileName = args["log_file"]
-
-dryValue = args["dry_val"]
-dryVoltage = args["dry_volt"]
-wetValue = args["wet_val"]
-wetVoltage = args["wet_volt"]
 
 wetThreshold = args["wet_threshold"]
 dryThreshold = args["dry_threshold"]
@@ -59,6 +52,13 @@ ads = ADS.ADS1015(i2c)
 # Create single-ended input on channel 0
 chan = AnalogIn(ads, ADS.P0)
 
+# Calibration values
+calibration = None
+dryValue = None
+dryVoltage = None
+wetValue = None
+wetVoltage = None
+
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
     if displayWhenQuiet or not quiet:
@@ -74,7 +74,7 @@ def err(text):
     log(text, True)
     
 def percent(num, high, low):
-    return 100 * float(num - low) / float(high - low)
+    return 100 * (float(num - low) / float(high - low))
 
 def calcValue(value):
     return 100 - percent(value, dryValue, wetValue)
@@ -82,7 +82,7 @@ def calcValue(value):
 def calcVoltage(voltage):
     return 100 - percent(voltage, dryVoltage, wetVoltage)
 
-def sendToServer(readingValue):
+def sendToServer(name, value):
     successful = True
     if server != "":
         try:
@@ -90,15 +90,15 @@ def sendToServer(readingValue):
                 "SourceHostName": socket.gethostname(), 
                 "Location": location, 
                 "SensorModel": f"{manufacturer} EK1940", 
-                "ReadingType": "Moisture", 
-                "ReadingValue": readingValue
+                "ReadingType": name, 
+                "ReadingValue": value
             }
-            log(f'Sending soil moisture post to {server}')
+            log(f'Sending {name} reading post to {server}')
             req = requests.post(server, data = tempReading, timeout=30)
             if (req.status_code != 200):
                 raise ConnectionError(f"Request status code did not indicate success ({req.status_code})!");
         except Exception as ex:
-            err(f"Could not send reading to '{server}' due to {type(ex).__name__}! {str(ex)}")
+            err(f"Could not send {name} reading to '{server}' due to {type(ex).__name__}! {str(ex)}")
             successful = False
     return successful
 
@@ -106,6 +106,19 @@ def sendToServer(readingValue):
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet = True)
+
+try:
+    with open("/home/pi/Project/calibration.json") as timestoneFile:
+        calibration = json.load(timestoneFile)
+        log("File loaded!")
+except FileNotFoundError:
+    err("'/home/pi/Project/calibration.json' could not be found!")
+    sys.exit(-1)
+log(f"Calibration: {calibration}", displayWhenQuiet=True)
+dryValue = calibration["DryValue"]
+dryVoltage = calibration["DryVoltage"]
+wetValue = calibration["WetValue"]
+wetVoltage = calibration["WetVoltage"]
 
 # ------------------------- DEFINE RUN -------------------------------
 log("Initialized!", displayWhenQuiet = True)
@@ -122,7 +135,9 @@ try:
         err(f"Sensor mismatch! RawADC:{rawVal}/({dryValue}-{wetValue}) vs Voltage{rawVoltage}/({dryVoltage}-{wetVoltage})")
     else:
         avg = statistics.mean([val, volt])
-        log(f'Moisture: {avg}%')
-        sendToServer(avg)
+        log(f'ADCValue: {rawVal}, Voltage: {rawVoltage}v, Moisture: {avg}%')
+        sendToServer("Moisture", avg)
+        sendToServer("ADCValue", rawVal)
+        sendToServer("Voltage", rawVoltage)
 except KeyboardInterrupt:
     log("KeyboardInterrupt caught! Cleaning up...")
