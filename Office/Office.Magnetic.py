@@ -140,8 +140,6 @@ def sendLightRequest(command):
         except Exception as ex:
             err(f"Could not send light request to '{server}' due to {type(ex).__name__}!")
             successful = False
-    else:
-        err('No server defined!')
 
 def handleOpen():
     log("Open:High")
