@@ -31,6 +31,7 @@
     <Folder Include="SoilMoisture\" />
     <Folder Include="Office\" />
     <Folder Include="SoilMoisture\CircuitPython\" />
+    <Folder Include="SoilMoisture\Vegetronix\" />
     <Folder Include="TestCode\" />
     <Folder Include="TestCode\MagneticSensor\" />
     <Folder Include="WandTracker\" />
@@ -150,6 +151,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SoilMoisture\CircuitPython\SoilMoisture.ADS1115.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SoilMoisture\Vegetronix\SoilMoisture.Vegetronix.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TestCode\httpRequestTest.py">
