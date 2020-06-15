@@ -25,8 +25,7 @@ argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disab
 argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
 argParser.add_argument("-w", "--wet-threshold", type=int, default=15, help="The value at which the soil is considered excessively wet.")
 argParser.add_argument("-d", "--dry-threshold", type=int, default=75, help="The value at which the soil is considered excessively dry.")
-argParser.add_argument("-l", "--location", default=None, help="Location of the sensor", required=True)
-argParser.add_argument("-s", "--server", default="", help="Server address to send log messages to")
+argParser.add_argument("-l", "--location", default="Test", help="Location of the sensor")
 argParser.set_defaults(quiet=False)
 
 args = vars(argParser.parse_args())
@@ -36,7 +35,6 @@ logFileName = args["log_file"]
 wetThreshold = args["wet_threshold"]
 dryThreshold = args["dry_threshold"]
 
-server = args["server"]
 location = args["location"]
 manufacturer = args["manufacturer"]
 
@@ -63,26 +61,6 @@ def log(text, displayWhenQuiet = False):
 
 def err(text):
     log(text, True)
-
-def sendToServer(name, value):
-    successful = True
-    if server != "":
-        try:
-            tempReading = { 
-                "SourceHostName": socket.gethostname(), 
-                "Location": location, 
-                "SensorModel": "Vegetronix VH400", 
-                "ReadingType": name, 
-                "ReadingValue": value
-            }
-            log(f'Sending {name} reading post to {server}')
-            req = requests.post(server, data = tempReading, timeout=30)
-            if (req.status_code != 200):
-                raise ConnectionError(f"Request status code did not indicate success ({req.status_code})!");
-        except Exception as ex:
-            err(f"Could not send {name} reading to '{server}' due to {type(ex).__name__}! {str(ex)}")
-            successful = False
-    return successful
 
 def calculateVH400(voltage):
     '''
@@ -115,9 +93,6 @@ try:
         waterContent = calculateVH400(rawVoltage)
 
         log(f'ADCValue: {rawVal}, Voltage: {rawVoltage}v, Moisture: {waterContent}%')
-        #sendToServer("Moisture", waterContent)
-        #sendToServer("Voltage", rawVoltage)
-        #sendToServer("ADCValue", rawVal)
         time.sleep(1)
 except KeyboardInterrupt:
     log("KeyboardInterrupt caught! Cleaning up...")

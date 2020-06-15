@@ -156,6 +156,9 @@
     <Compile Include="SoilMoisture\Vegetronix\SoilMoisture.Vegetronix.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SoilMoisture\Vegetronix\Test.Vegetronix.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TestCode\httpRequestTest.py">
       <SubType>Code</SubType>
     </Compile>
