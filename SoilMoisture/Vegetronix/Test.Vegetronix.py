@@ -36,7 +36,6 @@ wetThreshold = args["wet_threshold"]
 dryThreshold = args["dry_threshold"]
 
 location = args["location"]
-manufacturer = args["manufacturer"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 # Create the I2C bus
@@ -54,7 +53,7 @@ def log(text, displayWhenQuiet = False):
         now = datetime.now().strftime("%H:%M:%S")
         message = f"{now}: {text}"
         if logFileName is not None:
-            with open(f"/home/pi/Project/{logFileName}", "a") as fout:
+            with open(f"{logFileName}", "a") as fout:
                 fout.write(f"{message}\n")
         else:
             print(message)

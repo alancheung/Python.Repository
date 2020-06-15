@@ -26,7 +26,7 @@ argParser.add_argument("-f", "--log-file", default=None, help="Specify file to l
 argParser.add_argument("-w", "--wet-threshold", type=int, default=15, help="The value at which the soil is considered excessively wet.")
 argParser.add_argument("-d", "--dry-threshold", type=int, default=75, help="The value at which the soil is considered excessively dry.")
 argParser.add_argument("-l", "--location", default=None, help="Location of the sensor", required=True)
-argParser.add_argument("-s", "--server", default="", help="Server address to send log messages to")
+argParser.add_argument("-s", "--server", default=None, help="Server address to send log messages to")
 argParser.set_defaults(quiet=False)
 
 args = vars(argParser.parse_args())
@@ -38,7 +38,6 @@ dryThreshold = args["dry_threshold"]
 
 server = args["server"]
 location = args["location"]
-manufacturer = args["manufacturer"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 # Create the I2C bus
@@ -56,7 +55,7 @@ def log(text, displayWhenQuiet = False):
         now = datetime.now().strftime("%H:%M:%S")
         message = f"{now}: {text}"
         if logFileName is not None:
-            with open(f"/home/pi/Project/{logFileName}", "a") as fout:
+            with open(f"{logFileName}", "a") as fout:
                 fout.write(f"{message}\n")
         else:
             print(message)
@@ -66,7 +65,7 @@ def err(text):
 
 def sendToServer(name, value):
     successful = True
-    if server != "":
+    if server != None:
         try:
             tempReading = { 
                 "SourceHostName": socket.gethostname(), 
@@ -109,15 +108,13 @@ log(f"Args: {args}", displayWhenQuiet = True)
 log("Initialized!", displayWhenQuiet = True)
 log("Running...", displayWhenQuiet = True)
 try:
-    while True:
-        rawVal = chan.value
-        rawVoltage = chan.voltage
-        waterContent = calculateVH400(rawVoltage)
+    rawVal = chan.value
+    rawVoltage = chan.voltage
+    waterContent = calculateVH400(rawVoltage)
 
-        log(f'ADCValue: {rawVal}, Voltage: {rawVoltage}v, Moisture: {waterContent}%')
-        #sendToServer("Moisture", waterContent)
-        #sendToServer("Voltage", rawVoltage)
-        #sendToServer("ADCValue", rawVal)
-        time.sleep(1)
+    log(f'ADCValue: {rawVal}, Voltage: {rawVoltage}v, Moisture: {waterContent}%')
+    sendToServer("Moisture", waterContent)
+    sendToServer("Voltage", rawVoltage)
+    sendToServer("ADCValue", rawVal)
 except KeyboardInterrupt:
     log("KeyboardInterrupt caught! Cleaning up...")
