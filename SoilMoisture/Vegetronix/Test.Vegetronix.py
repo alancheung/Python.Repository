@@ -23,8 +23,6 @@ from adafruit_ads1x15.analog_in import AnalogIn
 argParser = argparse.ArgumentParser()
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
 argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
-argParser.add_argument("-w", "--wet-threshold", type=int, default=15, help="The value at which the soil is considered excessively wet.")
-argParser.add_argument("-d", "--dry-threshold", type=int, default=75, help="The value at which the soil is considered excessively dry.")
 argParser.add_argument("-l", "--location", default="Test", help="Location of the sensor")
 argParser.set_defaults(quiet=False)
 
