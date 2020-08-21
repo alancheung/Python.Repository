@@ -80,12 +80,13 @@ def authenticate(tepidPassword):
     log(f'Authentication of "{tepidPassword}" was {ok}');
     return ok
 
-def clear_password():
-    '''Clear the current password being stored and the display'''
+def clear():
+    '''Clear the current password being stored and the displays'''
     global currentPassword
-
     currentPassword = ''
     update_password_count()
+
+    window[captureKey].update(data=None)
 
 def take_picture():
     camera.capture(rawCapture, format="bgr")
@@ -140,7 +141,7 @@ try:
             update_password_count()
 
         elif event == 'Clear':
-            clear_password()
+            clear()
 
         elif event == 'Face Recognition':
             # Use fullsized 'image' for facial recog
@@ -151,7 +152,7 @@ try:
 
         elif event == 'Submit':
             submission = currentPassword
-            clear_password()
+            clear()
 
             if authenticate(submission):
                 window[passwordKey].update('ACCESS GRANTED')
