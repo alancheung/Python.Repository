@@ -1,3 +1,6 @@
+'''
+General file description.
+'''
 # ------------------------- DEFINE IMPORTS ---------------------------
 from __future__ import print_function
 from datetime import datetime
