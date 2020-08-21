@@ -132,6 +132,9 @@
     <Compile Include="DHT22\DHPi.DHT22.Sensor.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Keypad\keypadTest.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MotionCamera\DHPi.Magnetic.py">
       <SubType>Code</SubType>
     </Compile>

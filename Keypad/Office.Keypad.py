@@ -36,12 +36,10 @@ currentPassword = ''
 salt = 'SomeVeryFakeSaltThatIsOnlyUsedForTesting5618644984981353486'
 hash = b'o`\x07\xe3\x96\xd5\xa7\xf2\xf1\xa0\x1c|>q\xdec7\xe7\xfc\xf1L\x81u\xcf\xfbp\xbc%\xe0\x1f\xce\xe1\xd4\x96\x91\xce\x0c>\xc8\x91p>G7\xbc\xc9;\xf5i\xd7\xf6dS\xbdd\xa8\xa7/:1\xd8\xfb|\xcf'
 
-# Layout sizes
-piTouchWidth = 80
-piTouchHeight = 40
-piTouchSize = (piTouchWidth, piTouchHeight)
+# Layout sizes, assuming touchscreen of 800, 480 pixels
 
-numButtonSize = (15, 10)
+numButtonSize = (12, 4)
+fullWidth = 40
 
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
@@ -64,16 +62,15 @@ def update_password_count():
     '''
     Update the header with the appropriate number of * characters representing the length of the password entered.
     '''
-    window[passwordKey].update('*' * len(currentPassword))
+    if len(currentPassword) == 0:
+        window[passwordKey].update(passwordPrompt)
+    else:
+        window[passwordKey].update('*' * len(currentPassword))
 
 def authenticate(tepidPassword):
     ok = (hash == scrypt.hash(tepidPassword, salt))
     log(f'Authentication of "{tepidPassword}" was {ok}');
     return ok
-
-def authenticated():
-    '''Actions taken when user is successfully verified'''
-    log('Access Granted!')
 
 def clear_password():
     '''Clear the current password being stored and the display'''
@@ -86,12 +83,14 @@ def clear_password():
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet = True)
 
-keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(piTouchWidth, 5))],
+pictureLayout = [[sg.Image(r'', size=(400, 240))]]
+keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), font='Any 18')],
                 [sg.Button('7', size=numButtonSize), sg.Button('8', size=numButtonSize), sg.Button('9', size=numButtonSize)],
                 [sg.Button('4', size=numButtonSize), sg.Button('5', size=numButtonSize), sg.Button('6', size=numButtonSize)],
                 [sg.Button('1', size=numButtonSize), sg.Button('2', size=numButtonSize), sg.Button('3', size=numButtonSize)],
                 [sg.Button('Clear', size=numButtonSize), sg.Button('0', size=numButtonSize), sg.Button('Face', size=numButtonSize)],
-                [sg.Button('Submit', size=(piTouchWidth, 5))]]
+                [sg.Submit('Submit', size=(fullWidth, 4))]]
+layout = [[sg.Column(pictureLayout), sg.Column(keypadLayout)]]
 
 # ------------------------- DEFINE RUN -------------------------------
 log("Initialized!", displayWhenQuiet = True)
@@ -99,7 +98,7 @@ log("Running...", displayWhenQuiet = True)
 try:
     showKeypad = True
     #, no_titlebar=True, location=(0,0), size=piTouchSize, keep_on_top=True
-    window = sg.Window('Keypad', keypadLayout)
+    window = sg.Window('Keypad', layout, no_titlebar=True, location=(0,0), size=(800, 480), keep_on_top=True).Finalize()
 
     while showKeypad:
         event, values = window.read()
@@ -116,11 +115,16 @@ try:
             clear_password()
 
         elif event == 'Submit':
-            authenticate(currentPassword)
+            submission = currentPassword
             clear_password()
 
+            if authenticate(submission):
+                window[passwordKey].update('ACCESS GRANTED')
+            else:
+                window[passwordKey].update('ACCESS DENIED')
+
         if event in (sg.WIN_CLOSED, 'Quit'):
-            sg.popup("Closing")
+            #sg.popup("Closing")
             break
 
 except KeyboardInterrupt:
