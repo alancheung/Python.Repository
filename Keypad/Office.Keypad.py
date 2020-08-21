@@ -80,8 +80,11 @@ def authenticate(tepidPassword):
     log(f'Authentication of "{tepidPassword}" was {ok}');
     return ok
 
-def clear():
+def clear(delay = None):
     '''Clear the current password being stored and the displays'''
+    if (delay != None):
+        time.sleep(delay)
+
     global currentPassword
     currentPassword = ''
     update_password_count()

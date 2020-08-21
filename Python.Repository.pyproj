@@ -24,6 +24,7 @@
   <ItemGroup>
     <Folder Include="Common\" />
     <Folder Include="Common\__pycache__\" />
+    <Folder Include="Keypad\imageset\" />
     <Folder Include="MotionCamera\" />
     <Folder Include="MotionImages\" />
     <Folder Include="DHT22\" />
