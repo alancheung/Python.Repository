@@ -1,3 +1,8 @@
+'''
+This module uses OpenCV and plain Python libraries to mimic a smart lock entry.
+In addition to the traditional keypad setup, this module will use facial recognition
+to determine valid users.
+'''
 # ------------------------- DEFINE IMPORTS ---------------------------
 from __future__ import print_function
 from datetime import datetime

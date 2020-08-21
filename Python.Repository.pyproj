@@ -27,6 +27,7 @@
     <Folder Include="MotionCamera\" />
     <Folder Include="MotionImages\" />
     <Folder Include="DHT22\" />
+    <Folder Include="Keypad\" />
     <Folder Include="RaspberryPi\" />
     <Folder Include="RaspberryPi\HeadlessBoot\" />
     <Folder Include="SoilMoisture\" />
@@ -138,7 +139,7 @@
     <Compile Include="Office\jsonRequestTest.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Office\Office.Keypad.py">
+    <Compile Include="Keypad\Office.Keypad.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Office\Office.Magnetic.py" />
