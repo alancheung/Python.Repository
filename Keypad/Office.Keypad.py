@@ -10,6 +10,7 @@ import argparse
 import PySimpleGUI as sg
 import scrypt
 import os
+from picamera.array import PiRGBArray
 from picamera import PiCamera
 import time
 import cv2
@@ -33,6 +34,8 @@ logFileName = args["log_file"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 passwordKey = '-PASSSWORD-'
+cameraKey = '-CAMERACAPTURE-'
+
 passwordPrompt = 'Enter your password'
 currentPassword = ''
 
@@ -83,15 +86,22 @@ def clear_password():
     currentPassword = ''
     update_password_count()
 
+def take_picture():
+    camera.capture(rawCapture, format="bgr")
+    image = rawCapture.array
+    rawCapture.truncate(0)
+    log('Image taken!')
 
+    cv2.imshow('Capture', image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    return image
 
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet = True)
 
-camera = PiCamera()
-
-pictureLayout = [[sg.Image(r'', size=(400, 240))]]
+pictureLayout = [[sg.Image(r'', size=(400, 240), key=cameraKey)]]
 keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), font='Any 18')],
                 [sg.Button('7', size=numButtonSize), sg.Button('8', size=numButtonSize), sg.Button('9', size=numButtonSize)],
                 [sg.Button('4', size=numButtonSize), sg.Button('5', size=numButtonSize), sg.Button('6', size=numButtonSize)],
@@ -100,13 +110,18 @@ keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), f
                 [sg.Button('Face Recognition', size=(fullWidth, 4))]]
 layout = [[sg.Column(pictureLayout), sg.Column(keypadLayout)]]
 
+camera = PiCamera()
+camera.rotation = 90
+rawCapture = PiRGBArray(camera)
+time.sleep(2)
+
 # ------------------------- DEFINE RUN -------------------------------
 log("Initialized!", displayWhenQuiet = True)
 log("Running...", displayWhenQuiet = True)
 try:
     showKeypad = True
     #, no_titlebar=True, location=(0,0), size=piTouchSize, keep_on_top=True
-    window = sg.Window('Keypad', layout, no_titlebar=True, location=(0,0), size=(800, 480), keep_on_top=True).Finalize()
+    window = sg.Window('Keypad', layout, no_titlebar=True, location=(0,0), size=(800, 480), keep_on_top=False).Finalize()
 
     while showKeypad:
         event, values = window.read()
@@ -120,6 +135,7 @@ try:
             clear_password()
 
         elif event == 'Face Recognition':
+            image = take_picture()
 
         elif event == 'Submit':
             submission = currentPassword
