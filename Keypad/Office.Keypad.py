@@ -47,7 +47,7 @@ hash = b'o`\x07\xe3\x96\xd5\xa7\xf2\xf1\xa0\x1c|>q\xdec7\xe7\xfc\xf1L\x81u\xcf\x
 # Layout sizes, assuming touchscreen of 800, 480 pixels
 numButtonSize = (12, 4)
 fullWidth = 45
-captureImageSize = (800, 240)
+captureImageSize = (400, 480)
 
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
