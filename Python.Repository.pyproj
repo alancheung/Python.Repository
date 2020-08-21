@@ -138,6 +138,9 @@
     <Compile Include="Office\jsonRequestTest.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Office\Office.Keypad.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Office\Office.Magnetic.py" />
     <Compile Include="SoilMoisture\CircuitPython\Calibration.ADS1115.py">
       <SubType>Code</SubType>
