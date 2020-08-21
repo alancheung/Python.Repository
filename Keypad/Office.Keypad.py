@@ -8,7 +8,8 @@ from __future__ import print_function
 from datetime import datetime
 import argparse
 import PySimpleGUI as sg
-import hashlib, binascii, os
+import scrypt
+import os
 
 # ------------------------- DEFINE ARGUMENTS -------------------------
 # argParser.add_argument("-a", "--min-area", type=int, default=500, help="Minimum area size before motion detection")
@@ -19,6 +20,7 @@ import hashlib, binascii, os
 argParser = argparse.ArgumentParser()
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
 argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
+#argParser.add_argument("-s", "--salt", default=None, help="Unique salt for this program", required=True)
 argParser.set_defaults(quiet=False)
 
 args = vars(argParser.parse_args())
@@ -30,7 +32,9 @@ passwordKey = '-PASSSWORD-'
 passwordPrompt = 'Enter your password'
 currentPassword = ''
 
-globalPasswordHash = ''
+# Seriously though this is some test data getting pushed to a public repository...
+salt = 'SomeVeryFakeSaltThatIsOnlyUsedForTesting5618644984981353486'
+hash = b'o`\x07\xe3\x96\xd5\xa7\xf2\xf1\xa0\x1c|>q\xdec7\xe7\xfc\xf1L\x81u\xcf\xfbp\xbc%\xe0\x1f\xce\xe1\xd4\x96\x91\xce\x0c>\xc8\x91p>G7\xbc\xc9;\xf5i\xd7\xf6dS\xbdd\xa8\xa7/:1\xd8\xfb|\xcf'
 
 # Layout sizes
 piTouchWidth = 80
@@ -38,7 +42,6 @@ piTouchHeight = 40
 piTouchSize = (piTouchWidth, piTouchHeight)
 
 numButtonSize = (15, 10)
-
 
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
@@ -63,28 +66,17 @@ def update_password_count():
     '''
     window[passwordKey].update('*' * len(currentPassword))
 
-def hash_password(password):
-    '''Hash a password for storing.'''
-    salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
-    pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), salt, 100000)
-    pwdhash = binascii.hexlify(pwdhash)
-    return (salt + pwdhash).decode('ascii')
-
-def verify_password(stored_password, provided_password):
-    '''Verify a stored password against one provided by user'''
-    salt = stored_password[:64]
-    stored_password = stored_password[64:]
-    pwdhash = hashlib.pbkdf2_hmac('sha512', provided_password.encode('utf-8'), salt.encode('ascii'), 100000)
-    pwdhash = binascii.hexlify(pwdhash).decode('ascii')
-    return pwdhash == stored_password
-
 def authenticate(tepidPassword):
-    ok = verify_password('', tepidPassword)
-    # TODO: DO STUFF HERE
-    log(ok)
+    ok = (hash == scrypt.hash(tepidPassword, salt))
+    log(f'Authentication of "{tepidPassword}" was {ok}');
     return ok
 
+def authenticated():
+    '''Actions taken when user is successfully verified'''
+    log('Access Granted!')
+
 def clear_password():
+    '''Clear the current password being stored and the display'''
     global currentPassword
 
     currentPassword = ''
@@ -121,7 +113,6 @@ try:
             clear_password()
 
         elif event == 'Face':
-            print(hash_password(currentPassword))
             clear_password()
 
         elif event == 'Submit':
