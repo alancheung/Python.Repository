@@ -10,6 +10,10 @@ import argparse
 import PySimpleGUI as sg
 import scrypt
 import os
+from picamera import PiCamera
+import time
+import cv2
+import numpy as np
 
 # ------------------------- DEFINE ARGUMENTS -------------------------
 # argParser.add_argument("-a", "--min-area", type=int, default=500, help="Minimum area size before motion detection")
@@ -39,7 +43,7 @@ hash = b'o`\x07\xe3\x96\xd5\xa7\xf2\xf1\xa0\x1c|>q\xdec7\xe7\xfc\xf1L\x81u\xcf\x
 # Layout sizes, assuming touchscreen of 800, 480 pixels
 
 numButtonSize = (12, 4)
-fullWidth = 40
+fullWidth = 45
 
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
@@ -79,17 +83,21 @@ def clear_password():
     currentPassword = ''
     update_password_count()
 
+
+
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet = True)
+
+camera = PiCamera()
 
 pictureLayout = [[sg.Image(r'', size=(400, 240))]]
 keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), font='Any 18')],
                 [sg.Button('7', size=numButtonSize), sg.Button('8', size=numButtonSize), sg.Button('9', size=numButtonSize)],
                 [sg.Button('4', size=numButtonSize), sg.Button('5', size=numButtonSize), sg.Button('6', size=numButtonSize)],
                 [sg.Button('1', size=numButtonSize), sg.Button('2', size=numButtonSize), sg.Button('3', size=numButtonSize)],
-                [sg.Button('Clear', size=numButtonSize), sg.Button('0', size=numButtonSize), sg.Button('Face', size=numButtonSize)],
-                [sg.Submit('Submit', size=(fullWidth, 4))]]
+                [sg.Button('Clear', size=numButtonSize), sg.Button('0', size=numButtonSize), sg.Submit('Submit', size=numButtonSize)],
+                [sg.Button('Face Recognition', size=(fullWidth, 4))]]
 layout = [[sg.Column(pictureLayout), sg.Column(keypadLayout)]]
 
 # ------------------------- DEFINE RUN -------------------------------
@@ -111,8 +119,7 @@ try:
         elif event == 'Clear':
             clear_password()
 
-        elif event == 'Face':
-            clear_password()
+        elif event == 'Face Recognition':
 
         elif event == 'Submit':
             submission = currentPassword
