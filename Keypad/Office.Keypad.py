@@ -15,6 +15,7 @@ from picamera import PiCamera
 import time
 import cv2
 import numpy as np
+import base64
 
 # ------------------------- DEFINE ARGUMENTS -------------------------
 # argParser.add_argument("-a", "--min-area", type=int, default=500, help="Minimum area size before motion detection")
@@ -34,7 +35,7 @@ logFileName = args["log_file"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 passwordKey = '-PASSSWORD-'
-cameraKey = '-CAMERACAPTURE-'
+captureKey = '-CAMERACAPTURE-'
 
 passwordPrompt = 'Enter your password'
 currentPassword = ''
@@ -44,9 +45,9 @@ salt = 'SomeVeryFakeSaltThatIsOnlyUsedForTesting5618644984981353486'
 hash = b'o`\x07\xe3\x96\xd5\xa7\xf2\xf1\xa0\x1c|>q\xdec7\xe7\xfc\xf1L\x81u\xcf\xfbp\xbc%\xe0\x1f\xce\xe1\xd4\x96\x91\xce\x0c>\xc8\x91p>G7\xbc\xc9;\xf5i\xd7\xf6dS\xbdd\xa8\xa7/:1\xd8\xfb|\xcf'
 
 # Layout sizes, assuming touchscreen of 800, 480 pixels
-
 numButtonSize = (12, 4)
 fullWidth = 45
+captureImageSize = (800, 240)
 
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
@@ -92,16 +93,23 @@ def take_picture():
     rawCapture.truncate(0)
     log('Image taken!')
 
-    cv2.imshow('Capture', image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    #cv2.imshow('Capture', image)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
     return image
+
+def convert_to_binary_encoded_base64(image):
+    '''Resize to 'captureImageSize' and converts the given image to a base64 encoded string image.'''
+    resizedImage = cv2.resize(image, captureImageSize)
+    retval, buffer = cv2.imencode('.png', resizedImage)
+    png_as_text = base64.b64encode(buffer)
+    return png_as_text
 
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet = True)
 
-pictureLayout = [[sg.Image(r'', size=(400, 240), key=cameraKey)]]
+pictureLayout = [[sg.Image(r'', size=captureImageSize, key=captureKey)]]
 keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), font='Any 18')],
                 [sg.Button('7', size=numButtonSize), sg.Button('8', size=numButtonSize), sg.Button('9', size=numButtonSize)],
                 [sg.Button('4', size=numButtonSize), sg.Button('5', size=numButtonSize), sg.Button('6', size=numButtonSize)],
@@ -135,7 +143,11 @@ try:
             clear_password()
 
         elif event == 'Face Recognition':
+            # Use fullsized 'image' for facial recog
             image = take_picture()
+
+            b64Image = convert_to_binary_encoded_base64(image)
+            window[captureKey].update(data=b64Image)
 
         elif event == 'Submit':
             submission = currentPassword
