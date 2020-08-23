@@ -343,3 +343,4 @@ healthchecksdb
 untracked.config
 untracked*
 APIKeysLocal.cs
+authentication.json
