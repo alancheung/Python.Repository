@@ -53,8 +53,6 @@ def alrt(text):
     log(text, True)
 
 def open_sesame():
-    window[passwordKey].update('ACCESS GRANTED')
-    
     # Connect NC relay connections and open door.
     GPIO.output(relayPin, GPIO.HIGH)
     time.sleep(openTime)
