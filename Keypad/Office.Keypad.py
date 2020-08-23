@@ -32,7 +32,7 @@ argParser = argparse.ArgumentParser()
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
 argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
 argParser.add_argument("-p", "--relay-pin", type=int, default=4, help="GPIO number that sensor is connected to.")
-argParser.add_argument("-o", "--open-time", type=int, default=4, help="Number of seconds to keep relay open (and lock unlocked).")
+argParser.add_argument("-o", "--open-time", type=int, default=3, help="Number of seconds to keep relay open (and lock unlocked).")
 argParser.set_defaults(quiet=False)
 
 args = vars(argParser.parse_args())
@@ -134,8 +134,8 @@ except FileNotFoundError:
     err("'/home/pi/Project/authentication.json' could not be found!")
     sys.exit(-1)
 
-salt = convert_time(timestones["salt"])
-hashHex = convert_time(timestones["hashHex"])
+salt = saltHash["salt"]
+hashHex = saltHash["hashHex"]
 log("Default authentication loaded!")
 
 pictureLayout = [[sg.Image(r'', size=captureImageSize, key=captureKey)]]
@@ -146,7 +146,7 @@ keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), f
                 [sg.Button('Clear', size=numButtonSize), sg.Button('0', size=numButtonSize), sg.Submit('Submit', size=numButtonSize)],
                 [sg.Button('Face Recognition', size=(fullWidth, 4))]]
 layout = [[sg.Column(pictureLayout), sg.Column(keypadLayout)]]
-log=("GUI layout set!")
+log("GUI layout set!")
 
 GPIO.setmode(GPIO.BCM) # GPIO Numbers instead of board numbers
 GPIO.setup(relayPin, GPIO.OUT) # GPIO Assign mode
