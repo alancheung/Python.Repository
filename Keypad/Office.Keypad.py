@@ -47,10 +47,6 @@ captureKey = '-CAMERACAPTURE-'
 passwordPrompt = 'Enter your password'
 currentPassword = ''
 
-# Seriously though this is some test data getting pushed to a public repository...
-salt = 'SomeVeryFakeSaltThatIsOnlyUsedForTesting5618644984981353486'
-hash = b'o`\x07\xe3\x96\xd5\xa7\xf2\xf1\xa0\x1c|>q\xdec7\xe7\xfc\xf1L\x81u\xcf\xfbp\xbc%\xe0\x1f\xce\xe1\xd4\x96\x91\xce\x0c>\xc8\x91p>G7\xbc\xc9;\xf5i\xd7\xf6dS\xbdd\xa8\xa7/:1\xd8\xfb|\xcf'
-
 # Layout sizes, assuming touchscreen of 800, 480 pixels
 numButtonSize = (12, 4)
 fullWidth = 45
@@ -128,6 +124,18 @@ def convert_to_binary_encoded_base64(image):
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet = True)
+
+try:
+    with open("/home/pi/Project/authentication.json") as saltHashFile:
+        saltHash = json.load(saltHashFile)
+        log("File loaded!")
+except FileNotFoundError:
+    err("'/home/pi/Project/authentication.json' could not be found!")
+    sys.exit(-1)
+
+salt = convert_time(timestones["salt"])
+hash = convert_time(timestones["hash"])
+log("Default authentication loaded!")
 
 pictureLayout = [[sg.Image(r'', size=captureImageSize, key=captureKey)]]
 keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), font='Any 18')],
