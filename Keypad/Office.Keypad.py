@@ -82,14 +82,14 @@ def update_password_count():
 
 def authenticate(tepidPassword):
     ok = (hashHex == scrypt.hash(tepidPassword, salt).hex())
-    log(f'Authentication of "{tepidPassword}" was {ok}');
+    log(f'Authentication was {ok}');
     return ok
 
 def authenticate_facial(image):
     log("TODO")
 
 def open_sesame():
-    window[passwordKey].update('ACCESS GRANTED')
+    window[passwordKey].update('ACCESS GRANTED').Finalize()
     
     # Connect NC relay connections and open door.
     GPIO.output(relayPin, GPIO.HIGH)
