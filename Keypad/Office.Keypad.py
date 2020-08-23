@@ -15,6 +15,7 @@ from picamera import PiCamera
 import time
 import cv2
 import numpy as np
+import base64
 import json
 try:
     import RPi.GPIO as GPIO
