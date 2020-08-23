@@ -139,6 +139,9 @@
     <Compile Include="Keypad\keypadTest.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Keypad\open.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MotionCamera\DHPi.Magnetic.py">
       <SubType>Code</SubType>
     </Compile>
