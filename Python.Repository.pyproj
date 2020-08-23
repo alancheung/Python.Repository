@@ -129,6 +129,9 @@
     <Compile Include="Common\FileFormat.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Common\gpioTest.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Common\__init__.py" />
     <Compile Include="DHT22\DHPi.DHT22.Sensor.py">
       <SubType>Code</SubType>
