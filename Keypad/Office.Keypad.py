@@ -15,6 +15,7 @@ from picamera import PiCamera
 import time
 import cv2
 import numpy as np
+import json
 try:
     import RPi.GPIO as GPIO
 except RuntimeError:
@@ -79,7 +80,7 @@ def update_password_count():
         window[passwordKey].update('*' * len(currentPassword))
 
 def authenticate(tepidPassword):
-    ok = (hash == scrypt.hash(tepidPassword, salt))
+    ok = (hashHex == scrypt.hash(tepidPassword, salt).hex())
     log(f'Authentication of "{tepidPassword}" was {ok}');
     return ok
 
@@ -134,7 +135,7 @@ except FileNotFoundError:
     sys.exit(-1)
 
 salt = convert_time(timestones["salt"])
-hash = convert_time(timestones["hash"])
+hashHex = convert_time(timestones["hashHex"])
 log("Default authentication loaded!")
 
 pictureLayout = [[sg.Image(r'', size=captureImageSize, key=captureKey)]]
