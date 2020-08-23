@@ -80,8 +80,12 @@ def authenticate(tepidPassword):
     log(f'Authentication of "{tepidPassword}" was {ok}');
     return ok
 
+def authenticate_facial(image):
+    log("TODO")
+
 def open_sesame():
-    print("Opening relay!")
+    window[passwordKey].update('ACCESS GRANTED')
+    log("TODO")
 
 def clear():
     '''Clear the current password being stored and the displays'''
@@ -92,14 +96,16 @@ def clear():
     window[captureKey].update(data=None)
 
 def take_picture():
-    camera.capture(rawCapture, format="bgr")
-    image = rawCapture.array
-    rawCapture.truncate(0)
-    log('Image taken!')
+    # Fire up camera to take picture, but leave camera off normally.
+    with PiCamera() as camera:
+        camera.rotation = 90
+        rawCapture = PiRGBArray(camera)
+        time.sleep(1) # Camera warm-up time
 
-    #cv2.imshow('Capture', image)
-    #cv2.waitKey(0)
-    #cv2.destroyAllWindows()
+        camera.capture(rawCapture, format="bgr")
+        image = rawCapture.array
+        rawCapture.truncate(0)
+    log('Image taken!')
     return image
 
 def convert_to_binary_encoded_base64(image):
@@ -122,11 +128,6 @@ keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), f
                 [sg.Button('Face Recognition', size=(fullWidth, 4))]]
 layout = [[sg.Column(pictureLayout), sg.Column(keypadLayout)]]
 
-camera = PiCamera()
-camera.rotation = 90
-rawCapture = PiRGBArray(camera)
-time.sleep(2)
-
 # ------------------------- DEFINE RUN -------------------------------
 log("Initialized!", displayWhenQuiet = True)
 log("Running...", displayWhenQuiet = True)
@@ -137,26 +138,28 @@ try:
 
     while showKeypad:
         event, values = window.read()
-        print(event)
+        log(event)
 
         # If numerical input assume user has hit an actual key.
         if (str(event).isnumeric()):
             currentPassword += str(event)
             update_password_count()
-
+        
+        # Clear event delegates to method.
         elif event == 'Clear':
             clear()
 
+        # Confirm if authenticated user by password
         elif event == 'Submit':
             submission = currentPassword
             clear()
 
             if authenticate(submission):
-                window[passwordKey].update('ACCESS GRANTED')
                 open_sesame()
             else:
                 window[passwordKey].update('ACCESS DENIED')
 
+        # Confirm authenticated user by facial recognition
         elif event == 'Face Recognition':
             clear()
 
@@ -166,9 +169,8 @@ try:
             b64Image = convert_to_binary_encoded_base64(image)
             window[captureKey].update(data=b64Image)
 
-
-
-        if event in (sg.WIN_CLOSED, 'Quit'):
+        # This captures the Ctrl-C and exit button events
+        elif event in (sg.WIN_CLOSED, 'Quit'):
             #sg.popup("Closing")
             break
 
