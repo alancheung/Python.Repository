@@ -80,11 +80,11 @@ def authenticate(tepidPassword):
     log(f'Authentication of "{tepidPassword}" was {ok}');
     return ok
 
-def clear(delay = None):
-    '''Clear the current password being stored and the displays'''
-    if (delay != None):
-        time.sleep(delay)
+def open_sesame():
+    print("Opening relay!")
 
+def clear():
+    '''Clear the current password being stored and the displays'''
     global currentPassword
     currentPassword = ''
     update_password_count()
@@ -139,6 +139,7 @@ try:
         event, values = window.read()
         print(event)
 
+        # If numerical input assume user has hit an actual key.
         if (str(event).isnumeric()):
             currentPassword += str(event)
             update_password_count()
@@ -146,21 +147,26 @@ try:
         elif event == 'Clear':
             clear()
 
-        elif event == 'Face Recognition':
-            # Use fullsized 'image' for facial recog
-            image = take_picture()
-
-            b64Image = convert_to_binary_encoded_base64(image)
-            window[captureKey].update(data=b64Image)
-
         elif event == 'Submit':
             submission = currentPassword
             clear()
 
             if authenticate(submission):
                 window[passwordKey].update('ACCESS GRANTED')
+                open_sesame()
             else:
                 window[passwordKey].update('ACCESS DENIED')
+
+        elif event == 'Face Recognition':
+            clear()
+
+            # Use fullsized 'image' object for facial recog
+            image = take_picture()
+
+            b64Image = convert_to_binary_encoded_base64(image)
+            window[captureKey].update(data=b64Image)
+
+
 
         if event in (sg.WIN_CLOSED, 'Quit'):
             #sg.popup("Closing")
