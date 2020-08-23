@@ -79,6 +79,7 @@ def update_password_count():
         window[passwordKey].update(passwordPrompt)
     else:
         window[passwordKey].update('*' * len(currentPassword))
+    window.Finalize()
 
 def authenticate(tepidPassword):
     ok = (hashHex == scrypt.hash(tepidPassword, salt).hex())
@@ -86,10 +87,12 @@ def authenticate(tepidPassword):
     return ok
 
 def authenticate_facial(image):
-    log("TODO")
+    '''TODO'''
+    return False
 
 def open_sesame():
-    window[passwordKey].update('ACCESS GRANTED').Finalize()
+    window[passwordKey].update('ACCESS GRANTED')
+    window.Finalize()
     
     # Connect NC relay connections and open door.
     GPIO.output(relayPin, GPIO.HIGH)
@@ -102,8 +105,12 @@ def clear():
     update_password_count()
 
     window[captureKey].update(data=None)
+    window.Finalize()
 
 def take_picture():
+    window[passwordKey].update('Smile! Working...')
+    window.Finalize()
+
     # Fire up camera to take picture, but leave camera off normally.
     with PiCamera() as camera:
         camera.rotation = 90
@@ -159,7 +166,8 @@ log("Running...", displayWhenQuiet = True)
 try:
     showKeypad = True
     #, no_titlebar=True, location=(0,0), size=piTouchSize, keep_on_top=True
-    window = sg.Window('Keypad', layout, no_titlebar=True, location=(0,0), size=(800, 480), keep_on_top=False).Finalize()
+    window = sg.Window('Keypad', layout, no_titlebar=True, location=(0,0), size=(800, 480), keep_on_top=False)
+    window.Finalize()
 
     while showKeypad:
         event, values = window.read()
@@ -183,6 +191,7 @@ try:
                 open_sesame()
             else:
                 window[passwordKey].update('ACCESS DENIED')
+                window.Finalize()
 
         # Confirm authenticated user by facial recognition
         elif event == 'Face Recognition':
@@ -193,6 +202,13 @@ try:
 
             b64Image = convert_to_binary_encoded_base64(image)
             window[captureKey].update(data=b64Image)
+            window.Finalize()
+
+            if authenticate_facial(image):
+                open_sesame()
+            else: 
+                window[passwordKey].update('Not implemented :(')
+                window.Finalize()
 
         # This captures the Ctrl-C and exit button events
         elif event in (sg.WIN_CLOSED, 'Quit'):
