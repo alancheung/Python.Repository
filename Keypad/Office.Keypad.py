@@ -15,7 +15,11 @@ from picamera import PiCamera
 import time
 import cv2
 import numpy as np
-import base64
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    print("Error importing RPi.GPIO!  This is probably because you need superuser privileges.  You can achieve this by using 'sudo' to run your script")
+
 
 # ------------------------- DEFINE ARGUMENTS -------------------------
 # argParser.add_argument("-a", "--min-area", type=int, default=500, help="Minimum area size before motion detection")
@@ -26,12 +30,15 @@ import base64
 argParser = argparse.ArgumentParser()
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
 argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
-#argParser.add_argument("-s", "--salt", default=None, help="Unique salt for this program", required=True)
+argParser.add_argument("-p", "--relay-pin", type=int, default=4, help="GPIO number that sensor is connected to.")
+argParser.add_argument("-o", "--open-time", type=int, default=4, help="Number of seconds to keep relay open (and lock unlocked).")
 argParser.set_defaults(quiet=False)
 
 args = vars(argParser.parse_args())
 quiet = args["quiet"]
 logFileName = args["log_file"]
+relayPin = args["relay_pin"]
+openTime = args["open_time"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 passwordKey = '-PASSSWORD-'
@@ -85,8 +92,11 @@ def authenticate_facial(image):
 
 def open_sesame():
     window[passwordKey].update('ACCESS GRANTED')
-    log("TODO")
-
+    
+    # Connect NC relay connections and open door.
+    GPIO.output(relayPin, GPIO.HIGH)
+    time.sleep(openTime)
+    GPIO.output(relayPin, GPIO.LOW)
 def clear():
     '''Clear the current password being stored and the displays'''
     global currentPassword
@@ -127,6 +137,11 @@ keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), f
                 [sg.Button('Clear', size=numButtonSize), sg.Button('0', size=numButtonSize), sg.Submit('Submit', size=numButtonSize)],
                 [sg.Button('Face Recognition', size=(fullWidth, 4))]]
 layout = [[sg.Column(pictureLayout), sg.Column(keypadLayout)]]
+log=("GUI layout set!")
+
+GPIO.setmode(GPIO.BCM) # GPIO Numbers instead of board numbers
+GPIO.setup(relayPin, GPIO.OUT) # GPIO Assign mode
+log("GPIO initialized!")
 
 # ------------------------- DEFINE RUN -------------------------------
 log("Initialized!", displayWhenQuiet = True)
@@ -176,3 +191,6 @@ try:
 
 except KeyboardInterrupt:
     log("KeyboardInterrupt caught! Cleaning up...")
+finally:
+    GPIO.cleanup()
+    log("Program exiting...")
