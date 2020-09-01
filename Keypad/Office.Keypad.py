@@ -4,19 +4,30 @@ In addition to the traditional keypad setup, this module will use facial recogni
 to determine valid users.
 '''
 # ------------------------- DEFINE IMPORTS ---------------------------
+# System imports
 from __future__ import print_function
-from datetime import datetime
+from datetime import datetime, time, timedelta
 import argparse
+import time
+import json
+import requests
+
+# UI
 import PySimpleGUI as sg
+
+# Hashing
 import scrypt
 import os
+
+# PiCamera imports
 from picamera.array import PiRGBArray
 from picamera import PiCamera
-import time
 import cv2
 import numpy as np
 import base64
-import json
+
+# GPIO
+from mfrc522 import SimpleMFRC522
 try:
     import RPi.GPIO as GPIO
 except RuntimeError:
@@ -34,6 +45,8 @@ argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disab
 argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
 argParser.add_argument("-p", "--relay-pin", type=int, default=4, help="GPIO number that sensor is connected to.")
 argParser.add_argument("-o", "--open-time", type=int, default=3, help="Number of seconds to keep relay open (and lock unlocked).")
+argParser.add_argument("-s", "--server", default="http://dhcpi:3000", help="Server address to send log messages to")
+
 argParser.set_defaults(quiet=False)
 
 args = vars(argParser.parse_args())
@@ -41,6 +54,7 @@ quiet = args["quiet"]
 logFileName = args["log_file"]
 relayPin = args["relay_pin"]
 openTime = args["open_time"]
+server = args["server"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 passwordKey = '-PASSSWORD-'
@@ -53,6 +67,8 @@ currentPassword = ''
 numButtonSize = (12, 4)
 fullWidth = 45
 captureImageSize = (400, 480)
+
+lastRfidTime = datetime.now()
 
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
@@ -81,23 +97,73 @@ def update_password_count():
         window[passwordKey].update('*' * len(currentPassword))
     window.Finalize()
 
-def authenticate(tepidPassword):
-    ok = (hashHex == scrypt.hash(tepidPassword, salt).hex())
-    log(f'Authentication was {ok}');
-    return ok
+def update_password_prompt(message):
+    window[passwordKey].update(message)
+    window.Finalize()
 
-def authenticate_facial(image):
-    '''TODO'''
+def authenticate(tepidPassword, type):
+    tepidPassword = str(tepidPassword)
+    hex = str(scrypt.hash(tepidPassword, salt).hex())
+
+    try:
+        log(f'Sending authentication to {server}')
+        authRequest = {
+	        "ID": "",
+	        "Hash": hex,
+	        "Type": type,
+	        "ClientId": clientId,
+	        "ClientKey": clientKey
+        }
+
+        req = requests.post(f'{server}/authorization/authenticate', data = authRequest)
+        if (req.status_code == 200):
+            alrt("Authenticated user!")
+            return True
+        elif (req.status_code == 401):
+            err("Wrong password!")
+            update_password_prompt('ACCESS DENIED')
+            return False
+        else:
+            err(f"Request status code did not indicate success ({req.status_code})!");
+            update_password_prompt('ACCESS DENIED: Server Error')
+            return False
+    except Exception as ex:
+        err(f"Could not authenticate due to {type(ex).__name__}!")
+        update_password_prompt('ACCESS DENIED: Error')
+        return False
+    
+    update_password_prompt('ACCESS DENIED')
+    err('Fell through authentication!')
     return False
 
-def open_sesame():
-    window[passwordKey].update('ACCESS GRANTED')
-    window.Finalize()
-    
-    # Connect NC relay connections and open door.
-    GPIO.output(relayPin, GPIO.HIGH)
-    time.sleep(openTime)
-    GPIO.output(relayPin, GPIO.LOW)
+def authenticate_facial(faces):
+    # Eh okay with more than one faces, just see if any match a trusted user.
+    if (faces is None or len(faces) <= 0):
+        err("No faces found!")
+        update_password_prompt('ACCESS DENIED: No faces detected')
+        return False, None
+        
+    # Okay lets check the faces now I guess
+    for face in faces:
+        grayFace = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+        id, confidenceIndex = doorman.predict(grayFace)
+
+        # confidenceIndex will be 0 if perfect match
+        name = allowedFaces[id]
+        confidence = round(100 - confidenceIndex)
+        alrt(f'Identified: {name} with confidence {confidence}%.')
+
+        # This should probably be higher
+        if (confidence > 40):
+            return (authenticate(name, 'FACE'), name)
+        else:
+            update_password_prompt('ACCESS DENIED: You seem familiar..')
+            return False, None
+        
+    update_password_prompt('ACCESS DENIED')
+    err('Fell through authentication (facial)!')
+    return False, None
+
 def clear():
     '''Clear the current password being stored and the displays'''
     global currentPassword
@@ -107,9 +173,16 @@ def clear():
     window[captureKey].update(data=None)
     window.Finalize()
 
+def open_sesame():
+    # Connect NC relay connections and open door.
+    GPIO.output(relayPin, GPIO.HIGH)
+    time.sleep(openTime)
+    GPIO.output(relayPin, GPIO.LOW)
+
+    clear()
+
 def take_picture():
-    window[passwordKey].update('Smile! Working...')
-    window.Finalize()
+    update_password_prompt('Smile! Working...')
 
     # Fire up camera to take picture, but leave camera off normally.
     with PiCamera() as camera:
@@ -121,7 +194,29 @@ def take_picture():
         image = rawCapture.array
         rawCapture.truncate(0)
     log('Image taken!')
+
     return image
+
+def detect_faces(image):
+    '''
+    Given an image:
+    1) Convert the image to gray-scale
+    2) Detect the number of faces in the image
+        ---2a) Draw a square around all of the faces
+        2b) Cut out the face from the image
+    3) Return all found faces as images
+    '''
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    detected = faceCascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5, minSize=(20, 20))
+    faces = []
+
+    log(f'Found {len(detected)} faces!')
+    for (x, y, w, h) in detected:
+        # Steal the face before drawing the square!
+        faces.append(image[y:y+h, x:x+w])
+        #cv2.rectangle(image, (x,y), (x+w,y+h), (255,0,0), 2)
+
+    return faces
 
 def convert_to_binary_encoded_base64(image):
     '''Resize to 'captureImageSize' and converts the given image to a base64 encoded string image.'''
@@ -135,15 +230,17 @@ log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet = True)
 
 try:
-    with open("/home/pi/Project/authentication.json") as saltHashFile:
-        saltHash = json.load(saltHashFile)
+    with open("/home/pi/Project/Keypad/authentication.json") as authFile:
+        authInfo = json.load(authFile)
         log("File loaded!")
 except FileNotFoundError:
-    err("'/home/pi/Project/authentication.json' could not be found!")
+    err("'/home/pi/Project/Keypad/authentication.json' could not be found!")
     sys.exit(-1)
 
-salt = saltHash["salt"]
-hashHex = saltHash["hashHex"]
+salt = authInfo["salt"]
+allowedFaces = ["None"] + authInfo["allowedFaces"]
+clientId = authInfo["myId"]
+clientKey = authInfo["myKey"]
 log("Default authentication loaded!")
 
 pictureLayout = [[sg.Image(r'', size=captureImageSize, key=captureKey)]]
@@ -158,7 +255,15 @@ log("GUI layout set!")
 
 GPIO.setmode(GPIO.BCM) # GPIO Numbers instead of board numbers
 GPIO.setup(relayPin, GPIO.OUT) # GPIO Assign mode
-log("GPIO initialized!")
+log("GPIO relay initialized!")
+
+rfidReader = SimpleMFRC522()
+log("RFID reader initialized!")
+
+faceCascade = cv2.CascadeClassifier('/home/pi/Project/Keypad/haar_frontface_default.xml')
+doorman = cv2.face.LBPHFaceRecognizer_create()
+doorman.read('/home/pi/Project/Keypad/doorman.yml')
+log("CV2 face initialized!")
 
 # ------------------------- DEFINE RUN -------------------------------
 log("Initialized!", displayWhenQuiet = True)
@@ -170,50 +275,75 @@ try:
     window.Finalize()
 
     while showKeypad:
-        event, values = window.read()
-        log(event)
+        # Stop spamming RFID reader
+        now = datetime.now()
+        timeSinceRfid = now - lastRfidTime
+        if timeSinceRfid.seconds > 1:
+            rfidId, rfidData = rfidReader.read_no_block()
+        else:
+            rfidId = None
+            rfidData = None
 
-        # If numerical input assume user has hit an actual key.
-        if (str(event).isnumeric()):
-            currentPassword += str(event)
-            update_password_count()
+        # Regularly read from the window
+        event, values = window.read(1)
         
-        # Clear event delegates to method.
-        elif event == 'Clear':
-            clear()
-
-        # Confirm if authenticated user by password
-        elif event == 'Submit':
-            submission = currentPassword
-            clear()
-
-            if authenticate(submission):
+        if rfidId is not None:
+            lastRfidTime = datetime.now()
+            if authenticate(rfidId, "RFID"):
+                update_password_prompt('ACCESS GRANTED')
                 open_sesame()
             else:
                 window[passwordKey].update('ACCESS DENIED')
                 window.Finalize()
+        elif event is not sg.TIMEOUT_EVENT:
+            # If numerical input assume user has hit an actual key.
+            if (str(event).isnumeric()):
+                currentPassword += str(event)
+                update_password_count()
+        
+            # Clear event delegates to method.
+            elif event == 'Clear':
+                clear()
 
-        # Confirm authenticated user by facial recognition
-        elif event == 'Face Recognition':
-            clear()
+            # Confirm if authenticated user by password
+            elif event == 'Submit':
+                submission = currentPassword
+                clear()
 
-            # Use fullsized 'image' object for facial recog
-            image = take_picture()
+                # authenticate sets denied messages
+                if authenticate(submission, "KEYPAD"):
+                    update_password_prompt('ACCESS GRANTED')
+                    open_sesame()
 
-            b64Image = convert_to_binary_encoded_base64(image)
-            window[captureKey].update(data=b64Image)
-            window.Finalize()
+            # Confirm authenticated user by facial recognition
+            elif event == 'Face Recognition':
+                clear()
 
-            if authenticate_facial(image):
-                open_sesame()
-            else: 
-                window[passwordKey].update('Not implemented :(')
+                # Take and find all faces in the image.
+                image = take_picture()
+                faces = detect_faces(image)
+
+                # Display either a face if one was found or the camera picture
+                if (len(faces) > 0):
+                    b64Image = convert_to_binary_encoded_base64(faces[0])
+                else:
+                    b64Image = convert_to_binary_encoded_base64(image)
+                window[captureKey].update(data=b64Image)
                 window.Finalize()
 
-        # This captures the Ctrl-C and exit button events
-        elif event in (sg.WIN_CLOSED, 'Quit'):
-            #sg.popup("Closing")
-            break
+                # authenticate_facial sets denied status messages
+                authenticated, name = authenticate_facial(faces)
+                if authenticated:
+                    update_password_prompt(f'Welcome, {name}!')
+                    open_sesame()
+
+            # This captures the Ctrl-C and exit button events
+            elif event in (sg.WIN_CLOSED, 'Quit'):
+                #sg.popup("Closing")
+                break
+        else:
+            # Nothing to see here.
+            continue
 
 except KeyboardInterrupt:
     log("KeyboardInterrupt caught! Cleaning up...")

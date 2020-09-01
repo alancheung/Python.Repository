@@ -43,6 +43,8 @@
     <Folder Include="WandTracker\WandTracker.Simple\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Keypad\doorman.yml" />
+    <Content Include="Keypad\haar_frontface_default.xml" />
     <Content Include="RaspberryPi\.bash_aliases" />
     <Content Include="Common\timestones.json" />
     <Content Include="Common\__pycache__\ConsoleLogger.cpython-37.pyc" />
