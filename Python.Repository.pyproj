@@ -24,6 +24,9 @@
   <ItemGroup>
     <Folder Include="Common\" />
     <Folder Include="Common\__pycache__\" />
+    <Folder Include="FacialRecognition\" />
+    <Folder Include="FacialRecognition\dataset\" />
+    <Folder Include="FacialRecognition\trainer\" />
     <Folder Include="Keypad\imageset\" />
     <Folder Include="MotionCamera\" />
     <Folder Include="MotionImages\" />
@@ -43,7 +46,7 @@
     <Folder Include="WandTracker\WandTracker.Simple\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Keypad\doorman.yml" />
+    <Content Include="FacialRecognition\haar_frontface_default.xml" />
     <Content Include="Keypad\haar_frontface_default.xml" />
     <Content Include="RaspberryPi\.bash_aliases" />
     <Content Include="Common\timestones.json" />
@@ -138,6 +141,8 @@
     <Compile Include="DHT22\DHPi.DHT22.Sensor.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="FacialRecognition\generateDataset.py" />
+    <Compile Include="FacialRecognition\trainDataset.py" />
     <Compile Include="Keypad\keypadTest.py">
       <SubType>Code</SubType>
     </Compile>
