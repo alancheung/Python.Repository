@@ -36,12 +36,12 @@ except RuntimeError:
 
 # ------------------------- DEFINE ARGUMENTS -------------------------
 # argParser.add_argument("-a", "--min-area", type=int, default=500, help="Minimum area size before motion detection")
-#argParser.add_argument('--ononly', dest='ononly', action='store_true', help="Disable turning lights off command")
-#argParser.add_argument('--remote', dest='interactive', action='store_false', help="Disable Pi hardware specific functions")
+#argParser.add_argument("--ononly", dest="ononly", action="store_true", help="Disable turning lights off command")
+#argParser.add_argument("--remote", dest="interactive", action="store_false", help="Disable Pi hardware specific functions")
 #argParser.set_defaults(interactive=True)
 
 argParser = argparse.ArgumentParser()
-argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable informational logging")
+argParser.add_argument("--quiet", dest="quiet", action="store_true", help="Disable informational logging")
 argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
 argParser.add_argument("-p", "--relay-pin", type=int, default=4, help="GPIO number that relay is connected to.")
 argParser.add_argument("-o", "--open-time", type=int, default=3, help="Number of seconds to keep relay open (and lock unlocked).")
@@ -59,11 +59,11 @@ server = args["server"]
 baseDirectory = args["base_directory"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
-passwordKey = '-PASSSWORD-'
-captureKey = '-CAMERACAPTURE-'
+passwordKey = "-PASSSWORD-"
+captureKey = "-CAMERACAPTURE-"
 
-passwordPrompt = 'Enter your password'
-currentPassword = ''
+passwordPrompt = "Enter your password"
+currentPassword = ""
 
 # Layout sizes, assuming touchscreen of 800, 480 pixels
 numButtonSize = (12, 4)
@@ -103,7 +103,7 @@ def update_password_count():
     if len(currentPassword) == 0:
         window[passwordKey].update(passwordPrompt)
     else:
-        window[passwordKey].update('*' * len(currentPassword))
+        window[passwordKey].update("*" * len(currentPassword))
     window.Finalize()
 
 def update_password_prompt(message):
@@ -115,7 +115,7 @@ def authenticate(tepidPassword, type):
     hex = str(scrypt.hash(tepidPassword, salt).hex())
 
     try:
-        log(f'Sending authentication to {server}')
+        log(f"Sending authentication to {server}")
         authRequest = {
 	        "ID": "",
 	        "Hash": hex,
@@ -124,32 +124,32 @@ def authenticate(tepidPassword, type):
 	        "ClientKey": clientKey
         }
 
-        req = requests.post(f'{server}/authorization/authenticate', data = authRequest)
+        req = requests.post(f"{server}/authorization/authenticate", data = authRequest)
         if (req.status_code == 200):
             alrt("Authenticated user!")
             return True
         elif (req.status_code == 401):
             err("Wrong password!")
-            update_password_prompt('ACCESS DENIED')
+            update_password_prompt("ACCESS DENIED")
             return False
         else:
             err(f"Request status code did not indicate success ({req.status_code})!");
-            update_password_prompt('ACCESS DENIED: Server Error')
+            update_password_prompt("ACCESS DENIED: Server Error")
             return False
     except Exception as ex:
         err(f"Could not authenticate due to {type(ex).__name__}!")
-        update_password_prompt('ACCESS DENIED: Error')
+        update_password_prompt("ACCESS DENIED: Error")
         return False
     
-    update_password_prompt('ACCESS DENIED')
-    err('Fell through authentication!')
+    update_password_prompt("ACCESS DENIED")
+    err("Fell through authentication!")
     return False
 
 def authenticate_facial(faces):
     # Eh okay with more than one faces, just see if any match a trusted user.
     if (faces is None or len(faces) <= 0):
         err("No faces found!")
-        update_password_prompt('ACCESS DENIED: No faces detected')
+        update_password_prompt("ACCESS DENIED: No faces detected")
         return False, None
         
     # Okay lets check the faces now I guess
@@ -160,23 +160,23 @@ def authenticate_facial(faces):
         # confidenceIndex will be 0 if perfect match
         name = allowedFaces[id]
         confidence = round(100 - confidenceIndex)
-        alrt(f'Identified: {name} with confidence {confidence}%.')
+        alrt(f"Identified: {name} with confidence {confidence}%.")
 
         # This should probably be higher
         if (confidence > 40):
-            return (authenticate(name, 'FACE'), name)
+            return (authenticate(name, "FACE"), name)
         else:
-            update_password_prompt('ACCESS DENIED: You seem familiar..')
+            update_password_prompt("ACCESS DENIED: You seem familiar..")
             return False, None
         
-    update_password_prompt('ACCESS DENIED')
-    err('Fell through authentication (facial)!')
+    update_password_prompt("ACCESS DENIED")
+    err("Fell through authentication (facial)!")
     return False, None
 
 def clear():
     '''Clear the current password being stored and the displays'''
     global currentPassword
-    currentPassword = ''
+    currentPassword = ""
     update_password_count()
 
     window[captureKey].update(data=None)
@@ -191,7 +191,7 @@ def open_sesame():
     clear()
 
 def take_picture():
-    update_password_prompt('Smile! Working...')
+    update_password_prompt("Smile! Working...")
 
     # Fire up camera to take picture, but leave camera off normally.
     with PiCamera() as camera:
@@ -202,7 +202,7 @@ def take_picture():
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
         rawCapture.truncate(0)
-    log('Image taken!')
+    log("Image taken!")
 
     return image
 
@@ -219,7 +219,7 @@ def detect_faces(image):
     detected = faceCascade.detectMultiScale(gray, scaleFactor=1.2, minNeighbors=5, minSize=(20, 20))
     faces = []
 
-    log(f'Found {len(detected)} faces!')
+    log(f"Found {len(detected)} faces!")
     for (x, y, w, h) in detected:
         # Steal the face before drawing the square!
         faces.append(image[y:y+h, x:x+w])
@@ -228,9 +228,9 @@ def detect_faces(image):
     return faces
 
 def convert_to_binary_encoded_base64(image):
-    '''Resize to 'captureImageSize' and converts the given image to a base64 encoded string image.'''
+    '''Resize to "captureImageSize" and converts the given image to a base64 encoded string image.'''
     resizedImage = cv2.resize(image, captureImageSize)
-    retval, buffer = cv2.imencode('.png', resizedImage)
+    retval, buffer = cv2.imencode(".png", resizedImage)
     png_as_text = base64.b64encode(buffer)
     return png_as_text
 
@@ -252,13 +252,13 @@ clientId = authInfo["myId"]
 clientKey = authInfo["myKey"]
 log("Default authentication loaded!")
 
-pictureLayout = [[sg.Image(r'', size=captureImageSize, key=captureKey)]]
-keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), font='Any 18')],
-                [sg.Button('7', size=numButtonSize), sg.Button('8', size=numButtonSize), sg.Button('9', size=numButtonSize)],
-                [sg.Button('4', size=numButtonSize), sg.Button('5', size=numButtonSize), sg.Button('6', size=numButtonSize)],
-                [sg.Button('1', size=numButtonSize), sg.Button('2', size=numButtonSize), sg.Button('3', size=numButtonSize)],
-                [sg.Button('Clear', size=numButtonSize), sg.Button('0', size=numButtonSize), sg.Submit('Submit', size=numButtonSize)],
-                [sg.Button('Face Recognition', size=(fullWidth, 4))]]
+pictureLayout = [[sg.Image(r"", size=captureImageSize, key=captureKey)]]
+keypadLayout = [[sg.Text(passwordPrompt, key=passwordKey, size=(fullWidth, 2), font="Any 18")],
+                [sg.Button("7", size=numButtonSize), sg.Button("8", size=numButtonSize), sg.Button("9", size=numButtonSize)],
+                [sg.Button("4", size=numButtonSize), sg.Button("5", size=numButtonSize), sg.Button("6", size=numButtonSize)],
+                [sg.Button("1", size=numButtonSize), sg.Button("2", size=numButtonSize), sg.Button("3", size=numButtonSize)],
+                [sg.Button("Clear", size=numButtonSize), sg.Button("0", size=numButtonSize), sg.Submit("Submit", size=numButtonSize)],
+                [sg.Button("Face Recognition", size=(fullWidth, 4))]]
 layout = [[sg.Column(pictureLayout), sg.Column(keypadLayout)]]
 log("GUI layout set!")
 
@@ -280,7 +280,7 @@ log("Running...", displayWhenQuiet = True)
 try:
     showKeypad = True
     #, no_titlebar=True, location=(0,0), size=piTouchSize, keep_on_top=True
-    window = sg.Window('Keypad', layout, no_titlebar=True, location=(0,0), size=(800, 480), keep_on_top=False)
+    window = sg.Window("Keypad", layout, no_titlebar=True, location=(0,0), size=(800, 480), keep_on_top=False)
     window.Finalize()
 
     while showKeypad:
@@ -299,10 +299,10 @@ try:
         if rfidId is not None:
             lastRfidTime = datetime.now()
             if authenticate(rfidId, "RFID"):
-                update_password_prompt('ACCESS GRANTED')
+                update_password_prompt("ACCESS GRANTED")
                 open_sesame()
             else:
-                window[passwordKey].update('ACCESS DENIED')
+                window[passwordKey].update("ACCESS DENIED")
                 window.Finalize()
         elif event is not sg.TIMEOUT_EVENT:
             # If numerical input assume user has hit an actual key.
@@ -311,21 +311,21 @@ try:
                 update_password_count()
         
             # Clear event delegates to method.
-            elif event == 'Clear':
+            elif event == "Clear":
                 clear()
 
             # Confirm if authenticated user by password
-            elif event == 'Submit':
+            elif event == "Submit":
                 submission = currentPassword
                 clear()
 
                 # authenticate sets denied messages
                 if authenticate(submission, "KEYPAD"):
-                    update_password_prompt('ACCESS GRANTED')
+                    update_password_prompt("ACCESS GRANTED")
                     open_sesame()
 
             # Confirm authenticated user by facial recognition
-            elif event == 'Face Recognition':
+            elif event == "Face Recognition":
                 clear()
 
                 # Take and find all faces in the image.
@@ -343,11 +343,11 @@ try:
                 # authenticate_facial sets denied status messages
                 authenticated, name = authenticate_facial(faces)
                 if authenticated:
-                    update_password_prompt(f'Welcome, {name}!')
+                    update_password_prompt(f"Welcome, {name}!")
                     open_sesame()
 
             # This captures the Ctrl-C and exit button events
-            elif event in (sg.WIN_CLOSED, 'Quit'):
+            elif event in (sg.WIN_CLOSED, "Quit"):
                 #sg.popup("Closing")
                 break
         else:
