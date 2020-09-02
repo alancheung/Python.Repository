@@ -41,11 +41,12 @@ except RuntimeError:
 #argParser.set_defaults(interactive=True)
 
 argParser = argparse.ArgumentParser()
-argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
+argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable informational logging")
 argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
-argParser.add_argument("-p", "--relay-pin", type=int, default=4, help="GPIO number that sensor is connected to.")
+argParser.add_argument("-p", "--relay-pin", type=int, default=4, help="GPIO number that relay is connected to.")
 argParser.add_argument("-o", "--open-time", type=int, default=3, help="Number of seconds to keep relay open (and lock unlocked).")
 argParser.add_argument("-s", "--server", default="http://dhcpi:3000", help="Server address to send log messages to")
+argParser.add_argument("-b", "--base-directory", default=".", help="Directory that project files are stored in. Default to currently active directory.")
 
 argParser.set_defaults(quiet=False)
 
@@ -55,6 +56,7 @@ logFileName = args["log_file"]
 relayPin = args["relay_pin"]
 openTime = args["open_time"]
 server = args["server"]
+baseDirectory = args["base_directory"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 passwordKey = '-PASSSWORD-'
@@ -70,13 +72,20 @@ captureImageSize = (400, 480)
 
 lastRfidTime = datetime.now()
 
+# File paths and directory locations
+authFilePath = f"{baseDirectory}/authentication.json"
+faceCascadeXMLPath = f"{baseDirectory}/haar_frontface_default.xml"
+guestListPath = f"{baseDirectory}/doorman.yml"
+if logFileName is not None:
+    logFileName = f"{baseDirectory}/{logFileName}"
+
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
     if displayWhenQuiet or not quiet:
         now = datetime.now().strftime("%H:%M:%S")
         message = f"{now}: {text}"
         if logFileName is not None:
-            with open(f"/home/pi/Project/{logFileName}", "a") as fout:
+            with open(logFileName, "a") as fout:
                 fout.write(f"{message}\n")
         else:
             print(message)
@@ -230,11 +239,11 @@ log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet = True)
 
 try:
-    with open("/home/pi/Project/Keypad/authentication.json") as authFile:
+    with open(authFilePath) as authFile:
         authInfo = json.load(authFile)
         log("File loaded!")
 except FileNotFoundError:
-    err("'/home/pi/Project/Keypad/authentication.json' could not be found!")
+    err(f"'{authFilePath}' could not be found!")
     sys.exit(-1)
 
 salt = authInfo["salt"]
@@ -260,9 +269,9 @@ log("GPIO relay initialized!")
 rfidReader = SimpleMFRC522()
 log("RFID reader initialized!")
 
-faceCascade = cv2.CascadeClassifier('/home/pi/Project/Keypad/haar_frontface_default.xml')
+faceCascade = cv2.CascadeClassifier(faceCascadeXMLPath)
 doorman = cv2.face.LBPHFaceRecognizer_create()
-doorman.read('/home/pi/Project/Keypad/doorman.yml')
+doorman.read(guestListPath)
 log("CV2 face initialized!")
 
 # ------------------------- DEFINE RUN -------------------------------
