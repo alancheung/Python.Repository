@@ -1,7 +1,9 @@
 '''
 This module uses OpenCV and plain Python libraries to mimic a smart lock entry.
-In addition to the traditional keypad setup, this module will use facial recognition
-to determine valid users.
+Offers users 3 ways of authenticating and triggering the relay.
+1) Keypad entry
+2) RFID
+3) Facial recognition
 '''
 # ------------------------- DEFINE IMPORTS ---------------------------
 # System imports
@@ -75,7 +77,7 @@ lastRfidTime = datetime.now()
 # File paths and directory locations
 authFilePath = f"{baseDirectory}/authentication.json"
 faceCascadeXMLPath = f"{baseDirectory}/haar_frontface_default.xml"
-guestListPath = f"{baseDirectory}/doorman.yml"
+guestListPath = f"{baseDirectory}/guest_list.yml"
 if logFileName is not None:
     logFileName = f"{baseDirectory}/{logFileName}"
 
