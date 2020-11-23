@@ -4,7 +4,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>93e664b9-1f3d-4a5b-92c0-a927527b5608</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Keypad\Office.Keypad.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -24,14 +25,10 @@
   <ItemGroup>
     <Folder Include="Common\" />
     <Folder Include="Common\__pycache__\" />
-    <Folder Include="FacialRecognition\" />
-    <Folder Include="FacialRecognition\dataset\" />
-    <Folder Include="FacialRecognition\trainer\" />
-    <Folder Include="Keypad\imageset\" />
     <Folder Include="MotionCamera\" />
     <Folder Include="MotionImages\" />
     <Folder Include="DHT22\" />
-    <Folder Include="Keypad\" />
+    <Folder Include="Cronjobs\" />
     <Folder Include="RaspberryPi\" />
     <Folder Include="RaspberryPi\HeadlessBoot\" />
     <Folder Include="SoilMoisture\" />
@@ -46,8 +43,6 @@
     <Folder Include="WandTracker\WandTracker.Simple\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="FacialRecognition\haar_frontface_default.xml" />
-    <Content Include="Keypad\haar_frontface_default.xml" />
     <Content Include="RaspberryPi\.bash_aliases" />
     <Content Include="Common\timestones.json" />
     <Content Include="Common\__pycache__\ConsoleLogger.cpython-37.pyc" />
@@ -138,15 +133,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Common\__init__.py" />
+    <Compile Include="Cronjobs\LightsAPI.cronjob.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DHT22\DHPi.DHT22.Sensor.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="FacialRecognition\generateDataset.py" />
-    <Compile Include="FacialRecognition\trainDataset.py" />
-    <Compile Include="Keypad\keypadTest.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Keypad\open.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MotionCamera\DHPi.Magnetic.py">
@@ -154,9 +144,6 @@
     </Compile>
     <Compile Include="MotionCamera\DHPi.py" />
     <Compile Include="Office\jsonRequestTest.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Keypad\Office.Keypad.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Office\Office.Magnetic.py" />
