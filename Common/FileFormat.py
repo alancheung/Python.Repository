@@ -14,7 +14,7 @@ import argparse
 
 argParser = argparse.ArgumentParser()
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
-argParser.add_argument("-f", "--log-file", type=string, default=None, help="Specify file to log to.")
+argParser.add_argument("-f", "--log-file", default=None, help="Specify file to log to.")
 argParser.set_defaults(quiet=False)
 
 args = vars(argParser.parse_args())
@@ -26,7 +26,7 @@ logFileName = args["log_file"]
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
     if displayWhenQuiet or not quiet:
-        now = datetime.now().strftime("%H:%M:%S")
+        now = datetime.now().strftime("%x %X")
         message = f"{now}: {text}"
         if logFileName is not None:
             with open(f"/home/pi/Project/{logFileName}", "a") as fout:
