@@ -83,30 +83,57 @@ def lightOnSequence():
     # Weekday Monday(0) - Sunday(6)
     if now.weekday() < 5 and is_between_time(now.time(), (work_start, work_end)):
         # Ignore Office One because Kelly.
-        lightOn = {
-	        "Lights": ["Office Two", "Office Three"],
+        lightOn = [{
+	        "Lights": ["Office Two"],
+	        "TurnOn": "true",
+	        "Duration": 10000,
+	        "Hue": 0.88,
+	        "Saturation": 0.0,
+	        "Brightness": 1.0,
+	        "Kelvin": 5500,
+            "Delay": 1400
+        }, {
+	        "Lights": ["Office Three"],
 	        "TurnOn": "true",
 	        "Duration": 10000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
 	        "Brightness": 1.0,
 	        "Kelvin": 5500
-        }
+        }]
     else:
         if now.time() <= afternoon_dimmer:
             brightness = 1
         else:
             brightness = 0.45
 
-        lightOn = {
-	        "Lights": ["Office One", "Office Two", "Office Three"],
+        lightOn = [{
+	        "Lights": ["Office One"],
+	        "TurnOn": "true",
+	        "Duration": 10000,
+	        "Hue": 0.88,
+	        "Saturation": 0.0,
+	        "Brightness": brightness,
+	        "Kelvin": 2500,
+            "Delay": 1400
+        }, {
+	        "Lights": ["Office Two"],
+	        "TurnOn": "true",
+	        "Duration": 10000,
+	        "Hue": 0.88,
+	        "Saturation": 0.0,
+	        "Brightness": brightness,
+	        "Kelvin": 2500,
+            "Delay": 1400
+        }, {
+	        "Lights": ["Office Three"],
 	        "TurnOn": "true",
 	        "Duration": 10000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
 	        "Brightness": brightness,
 	        "Kelvin": 2500
-        }
+        }]
     sendLightRequest(lightOn)
 
 def lightOffSequence():
@@ -134,7 +161,7 @@ def sendLightRequest(command):
     if server != "":
         try:
             log(f'Sending light request post to {server}')
-            req = requests.post(f'{server}/api/lifx', data = command, timeout=30)
+            req = requests.post(f'{server}/api/lifx/sequence', data = command, timeout=30)
             if (req.status_code != 200):
                 err(f"Request status code did not indicate success ({req.status_code})!");
         except Exception as ex:
