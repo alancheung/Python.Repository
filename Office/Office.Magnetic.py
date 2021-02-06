@@ -161,7 +161,7 @@ def sendLightRequest(command):
     if server != "":
         try:
             log(f'Sending light request post to {server}')
-            req = requests.post(f'{server}/api/lifx/sequence', data = command, timeout=30)
+            req = requests.post(f'{server}/api/lifx/sequence', json = command, timeout=30)
             if (req.status_code != 200):
                 err(f"Request status code did not indicate success ({req.status_code})!");
         except Exception as ex:
