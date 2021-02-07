@@ -134,7 +134,7 @@ def lightOnSequence():
 	        "Brightness": brightness,
 	        "Kelvin": 2500
         }]
-    sendLightRequest(lightOn)
+    sendLightRequest('api/lifx/sequence', lightOn)
 
 def lightOffSequence():
     if debug: return
@@ -144,7 +144,7 @@ def lightOffSequence():
 	    "TurnOff": "true",
 	    "Duration": 1000
     }
-    sendLightRequest(lightOff)
+    sendLightRequest('api/lifx', lightOff)
 
 def sendAccessLog(state):
     if server != "":
@@ -157,11 +157,11 @@ def sendAccessLog(state):
         except Exception as ex:
             err(f"Could not send log to remote due to {type(ex).__name__}!")
 
-def sendLightRequest(command):
+def sendLightRequest(url, command):
     if server != "":
         try:
             log(f'Sending light request post to {server}')
-            req = requests.post(f'{server}/api/lifx/sequence', json = command, timeout=30)
+            req = requests.post(f'{server}/{url}', json = command, timeout=30)
             if (req.status_code != 200):
                 err(f"Request status code did not indicate success ({req.status_code})!");
         except Exception as ex:
