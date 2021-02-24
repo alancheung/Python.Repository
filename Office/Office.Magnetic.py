@@ -91,11 +91,11 @@ def lightOnSequence():
 	        "Saturation": 0.0,
 	        "Brightness": 1.0,
 	        "Kelvin": 5500,
-            "Delay": 900
+            "Delay": 1900
         }, {
 	        "Lights": ["Office Three"],
 	        "TurnOn": "true",
-	        "Duration": 10000,
+	        "Duration": 8000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
 	        "Brightness": 1.0,
@@ -115,11 +115,11 @@ def lightOnSequence():
 	        "Saturation": 0.0,
 	        "Brightness": brightness,
 	        "Kelvin": 2500,
-            "Delay": 900
+            "Delay": 1900
         }, {
 	        "Lights": ["Office Two"],
 	        "TurnOn": "true",
-	        "Duration": 10000,
+	        "Duration": 8000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
 	        "Brightness": brightness,
@@ -128,7 +128,7 @@ def lightOnSequence():
         }, {
 	        "Lights": ["Office Three"],
 	        "TurnOn": "true",
-	        "Duration": 10000,
+	        "Duration": 7000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
 	        "Brightness": brightness,
