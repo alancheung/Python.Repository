@@ -86,8 +86,8 @@ def lightOnSequence():
         lightOn = [{
             # Need to turn on the strip in order to send commands. Turn on-set brightness to 0.
             "Lights": ["Desk Strip"],
-            "TurnOn": true,
-            "ApplyZoneImmediately": true,
+            "TurnOn": "true",
+            "ApplyZoneImmediately": "true",
             "Duration": 0,
             "Hue": 0.88,
             "Saturation": 0.0,
@@ -97,7 +97,7 @@ def lightOnSequence():
         }, { # 1st Wave: Zones 4-7 & Office Two
 	        "Lights": ["Desk Strip"],
             "Zones": [4, 7],
-            "ApplyZoneImmediately": true,
+            "ApplyZoneImmediately": "true",
 	        "Duration": 10000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
@@ -116,7 +116,7 @@ def lightOnSequence():
         }, { # 2nd Wave: Zones 0-15 & Office Three
 	        "Lights": ["Desk Strip"],
             "Zones": [0, 15],
-            "ApplyZoneImmediately": true,
+            "ApplyZoneImmediately": "true",
 	        "Duration": 8000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
@@ -142,8 +142,8 @@ def lightOnSequence():
         lightOn = [{
             # Need to turn on the strip in order to send commands. Turn on-set brightness to 0.
             "Lights": ["Desk Strip"],
-            "TurnOn": true,
-            "ApplyZoneImmediately": true,
+            "TurnOn": "true",
+            "ApplyZoneImmediately": "true",
             "Duration": 0,
             "Hue": 0.88,
             "Saturation": 0.0,
@@ -153,7 +153,7 @@ def lightOnSequence():
         }, { # 1st Wave: Zones 5-10 & Office One
 	        "Lights": ["Desk Strip"],
             "Zones": [5, 5],
-            "ApplyZoneImmediately": true,
+            "ApplyZoneImmediately": "true",
 	        "Duration": 10000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
@@ -172,7 +172,7 @@ def lightOnSequence():
         }, { # 2nd Wave: Zones 2-13 (overwriting previous zones) & Office Two
 	        "Lights": ["Desk Strip"],
             "Zones": [2, 11],
-            "ApplyZoneImmediately": true,
+            "ApplyZoneImmediately": "true",
 	        "Duration": 8000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
@@ -191,7 +191,7 @@ def lightOnSequence():
         }, { # 3rd Wave: Zones 0-15 (full strip, overwriting previous) & Office Three
 	        "Lights": ["Desk Strip"],
             "Zones": [0, 15],
-            "ApplyZoneImmediately": true,
+            "ApplyZoneImmediately": "true",
 	        "Duration": 7000,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
@@ -210,7 +210,7 @@ def lightOnSequence():
         }, { # 4th Wave: Flash Desk Strip Green
 	        "Lights": ["Desk Strip"],
             "Zones": [0, 15],
-            "ApplyZoneImmediately": true,
+            "ApplyZoneImmediately": "true",
 	        "Duration": 500,
 	        "Hue": 0.33333,
             "Saturation": 1.0,
@@ -220,7 +220,7 @@ def lightOnSequence():
         }, {
 	        "Lights": ["Desk Strip"],
             "Zones": [0, 15],
-            "ApplyZoneImmediately": true,
+            "ApplyZoneImmediately": "true",
 	        "Duration": 500,
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
