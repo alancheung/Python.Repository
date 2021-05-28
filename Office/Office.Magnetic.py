@@ -84,6 +84,27 @@ def lightOnSequence():
     if now.weekday() < 5 and is_between_time(now.time(), (work_start, work_end)):
         # Ignore Office One because Kelly.
         lightOn = [{
+            # Need to turn on the strip in order to send commands. Turn on-set brightness to 0.
+            "Lights": ["Desk Strip"],
+            "TurnOn": true,
+            "ApplyZoneImmediately": true,
+            "Duration": 0,
+            "Hue": 0.88,
+            "Saturation": 0.0,
+            "Brightness": 0.0,
+            "Kelvin": 2500,
+            "Delay": 0
+        }, { # 1st Wave: Zones 4-7 & Office Two
+	        "Lights": ["Desk Strip"],
+            "Zones": [4, 7],
+            "ApplyZoneImmediately": true,
+	        "Duration": 10000,
+	        "Hue": 0.88,
+	        "Saturation": 0.0,
+	        "Brightness": 1.0,
+	        "Kelvin": 5500,
+            "Delay": 0
+        }, {
 	        "Lights": ["Office Two"],
 	        "TurnOn": "true",
 	        "Duration": 10000,
@@ -91,7 +112,17 @@ def lightOnSequence():
 	        "Saturation": 0.0,
 	        "Brightness": 1.0,
 	        "Kelvin": 5500,
-            "Delay": 1900
+            "Delay": 2000
+        }, { # 2nd Wave: Zones 0-15 & Office Three
+	        "Lights": ["Desk Strip"],
+            "Zones": [0, 15],
+            "ApplyZoneImmediately": true,
+	        "Duration": 8000,
+	        "Hue": 0.88,
+	        "Saturation": 0.0,
+	        "Brightness": 1.0,
+	        "Kelvin": 5500,
+            "Delay": 0
         }, {
 	        "Lights": ["Office Three"],
 	        "TurnOn": "true",
@@ -99,7 +130,8 @@ def lightOnSequence():
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
 	        "Brightness": 1.0,
-	        "Kelvin": 5500
+	        "Kelvin": 5500,
+            "Delay": 1000
         }]
     else:
         if now.time() <= afternoon_dimmer:
@@ -108,6 +140,27 @@ def lightOnSequence():
             brightness = 0.45
 
         lightOn = [{
+            # Need to turn on the strip in order to send commands. Turn on-set brightness to 0.
+            "Lights": ["Desk Strip"],
+            "TurnOn": true,
+            "ApplyZoneImmediately": true,
+            "Duration": 0,
+            "Hue": 0.88,
+            "Saturation": 0.0,
+            "Brightness": 0.0,
+            "Kelvin": 2500,
+            "Delay": 0
+        }, { # 1st Wave: Zones 5-10 & Office One
+	        "Lights": ["Desk Strip"],
+            "Zones": [5, 5],
+            "ApplyZoneImmediately": true,
+	        "Duration": 10000,
+	        "Hue": 0.88,
+	        "Saturation": 0.0,
+	        "Brightness": brightness,
+	        "Kelvin": 2500,
+            "Delay": 0
+        }, {
 	        "Lights": ["Office One"],
 	        "TurnOn": "true",
 	        "Duration": 10000,
@@ -115,7 +168,17 @@ def lightOnSequence():
 	        "Saturation": 0.0,
 	        "Brightness": brightness,
 	        "Kelvin": 2500,
-            "Delay": 1900
+            "Delay": 2000
+        }, { # 2nd Wave: Zones 2-13 (overwriting previous zones) & Office Two
+	        "Lights": ["Desk Strip"],
+            "Zones": [2, 11],
+            "ApplyZoneImmediately": true,
+	        "Duration": 8000,
+	        "Hue": 0.88,
+	        "Saturation": 0.0,
+	        "Brightness": brightness,
+	        "Kelvin": 2500,
+            "Delay": 0
         }, {
 	        "Lights": ["Office Two"],
 	        "TurnOn": "true",
@@ -124,7 +187,17 @@ def lightOnSequence():
 	        "Saturation": 0.0,
 	        "Brightness": brightness,
 	        "Kelvin": 2500,
-            "Delay": 900
+            "Delay": 1000
+        }, { # 3rd Wave: Zones 0-15 (full strip, overwriting previous) & Office Three
+	        "Lights": ["Desk Strip"],
+            "Zones": [0, 15],
+            "ApplyZoneImmediately": true,
+	        "Duration": 7000,
+	        "Hue": 0.88,
+	        "Saturation": 0.0,
+	        "Brightness": brightness,
+	        "Kelvin": 2500,
+            "Delay": 0
         }, {
 	        "Lights": ["Office Three"],
 	        "TurnOn": "true",
@@ -132,15 +205,37 @@ def lightOnSequence():
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
 	        "Brightness": brightness,
-	        "Kelvin": 2500
+	        "Kelvin": 2500,
+            "Delay": 7000
+        }, { # 4th Wave: Flash Desk Strip Green
+	        "Lights": ["Desk Strip"],
+            "Zones": [0, 15],
+            "ApplyZoneImmediately": true,
+	        "Duration": 500,
+	        "Hue": 0.33333,
+            "Saturation": 1.0,
+            "Brightness": brightness,
+            "Kelvin": 5500,
+            "Delay": 1000
+        }, {
+	        "Lights": ["Desk Strip"],
+            "Zones": [0, 15],
+            "ApplyZoneImmediately": true,
+	        "Duration": 500,
+	        "Hue": 0.88,
+	        "Saturation": 0.0,
+	        "Brightness": brightness,
+	        "Kelvin": 2500,
         }]
+
+    sequence = { "Count": 1, "Sequence": lightOn }
     sendLightRequest('api/lifx/sequence', lightOn)
 
 def lightOffSequence():
     if debug: return
 
     lightOff = {
-	    "Lights": ["Office One", "Office Two", "Office Three"],
+	    "Lights": ["Office One", "Office Two", "Office Three", "Desk Strip"],
 	    "TurnOff": "true",
 	    "Duration": 1000
     }
