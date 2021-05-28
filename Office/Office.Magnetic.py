@@ -229,7 +229,7 @@ def lightOnSequence():
         }]
 
     sequence = { "Count": 1, "Sequence": lightOn }
-    sendLightRequest('api/lifx/sequence', lightOn)
+    sendLightRequest('api/lifx/sequence', sequence)
 
 def lightOffSequence():
     if debug: return
