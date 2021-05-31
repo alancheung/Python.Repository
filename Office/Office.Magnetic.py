@@ -85,53 +85,47 @@ def lightOnSequence():
         # Ignore Office One because Kelly.
         lightOn = [{
             # Need to turn on the strip in order to send commands. Turn on-set brightness to 0.
+            "LifxCommandType": "ON",
             "Lights": ["Desk Strip"],
-            "TurnOn": "true",
-            "ApplyZoneImmediately": "true",
-            "Duration": 0,
-            "Hue": 0.88,
-            "Saturation": 0.0,
-            "Brightness": 0.0,
-            "Kelvin": 2500,
             "Delay": 0
         }, { # 1st Wave: Zones 4-7 & Office Two
+            "LifxCommandType": "MULTI_COLOR",
 	        "Lights": ["Desk Strip"],
             "Zones": [4, 7],
             "ApplyZoneImmediately": "true",
+            "Color": "white",
 	        "Duration": 10000,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
 	        "Brightness": 1.0,
 	        "Kelvin": 5500,
             "Delay": 0
         }, {
+            "LifxCommandType": "COLOR",
 	        "Lights": ["Office Two"],
 	        "TurnOn": "true",
 	        "Duration": 10000,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
+            "Color": "white",
 	        "Brightness": 1.0,
 	        "Kelvin": 5500,
             "Delay": 2000
         }, { # 2nd Wave: Zones 0-15 & Office Three
+            "LifxCommandType": "MULTI_COLOR",
 	        "Lights": ["Desk Strip"],
             "Zones": [0, 15],
             "ApplyZoneImmediately": "true",
-	        "Duration": 8000,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
+            "Color": "white",
+	        "Duration": 10000,
 	        "Brightness": 1.0,
 	        "Kelvin": 5500,
             "Delay": 0
         }, {
+            "LifxCommandType": "COLOR",
 	        "Lights": ["Office Three"],
 	        "TurnOn": "true",
-	        "Duration": 8000,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
+	        "Duration": 10000,
+            "Color": "white",
 	        "Brightness": 1.0,
 	        "Kelvin": 5500,
-            "Delay": 1000
+            "Delay": 2000
         }]
     else:
         if now.time() <= afternoon_dimmer:
@@ -141,64 +135,61 @@ def lightOnSequence():
 
         lightOn = [{
             # Need to turn on the strip in order to send commands. Turn on-set brightness to 0.
+            "LifxCommandType": "ON",
             "Lights": ["Desk Strip"],
-            "TurnOn": "true",
-            "ApplyZoneImmediately": "true",
-            "Duration": 0,
-            "Hue": 0.88,
-            "Saturation": 0.0,
-            "Brightness": 0.0,
-            "Kelvin": 2500,
             "Delay": 0
         }, { # 1st Wave: Zones 5-10 & Office One
+            "LifxCommandType": "MULTI_COLOR",
 	        "Lights": ["Desk Strip"],
             "Zones": [5, 5],
             "ApplyZoneImmediately": "true",
 	        "Duration": 10000,
+            "Color": "white",
 	        "Hue": 0.88,
 	        "Saturation": 0.0,
 	        "Brightness": brightness,
 	        "Kelvin": 2500,
             "Delay": 0
         }, {
+            "LifxCommandType": "COLOR",
 	        "Lights": ["Office One"],
 	        "TurnOn": "true",
 	        "Duration": 10000,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
+            "Color": "white",
 	        "Brightness": brightness,
 	        "Kelvin": 2500,
             "Delay": 2000
         }, { # 2nd Wave: Zones 2-13 (overwriting previous zones) & Office Two
+            "LifxCommandType": "MULTI_COLOR",
 	        "Lights": ["Desk Strip"],
             "Zones": [2, 11],
             "ApplyZoneImmediately": "true",
 	        "Duration": 8000,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
+            "Color": "white",
 	        "Brightness": brightness,
 	        "Kelvin": 2500,
             "Delay": 0
         }, {
+            "LifxCommandType": "COLOR",
 	        "Lights": ["Office Two"],
 	        "TurnOn": "true",
 	        "Duration": 8000,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
+            "Color": "white",
 	        "Brightness": brightness,
 	        "Kelvin": 2500,
             "Delay": 1000
         }, { # 3rd Wave: Zones 0-15 (full strip, overwriting previous) & Office Three
+            "LifxCommandType": "MULTI_COLOR",
 	        "Lights": ["Desk Strip"],
             "Zones": [0, 15],
             "ApplyZoneImmediately": "true",
 	        "Duration": 7000,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
+            "Color": "white",
 	        "Brightness": brightness,
 	        "Kelvin": 2500,
             "Delay": 0
         }, {
+            "LifxCommandType": "COLOR",
 	        "Lights": ["Office Three"],
 	        "TurnOn": "true",
 	        "Duration": 7000,
@@ -208,22 +199,18 @@ def lightOnSequence():
 	        "Kelvin": 2500,
             "Delay": 7000
         }, { # 4th Wave: Flash Desk Strip Green
+            "LifxCommandType": "COLOR",
 	        "Lights": ["Desk Strip"],
-            "Zones": [0, 15],
-            "ApplyZoneImmediately": "true",
 	        "Duration": 500,
-	        "Hue": 0.33333,
-            "Saturation": 1.0,
+            "Color": "green",
             "Brightness": brightness,
             "Kelvin": 5500,
             "Delay": 1000
         }, {
+            "LifxCommandType": "COLOR",
 	        "Lights": ["Desk Strip"],
-            "Zones": [0, 15],
-            "ApplyZoneImmediately": "true",
 	        "Duration": 500,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
+            "Color": "white",
 	        "Brightness": brightness,
 	        "Kelvin": 2500,
         }]
@@ -235,8 +222,8 @@ def lightOffSequence():
     if debug: return
 
     lightOff = {
+        "LifxCommandType": "OFF",
 	    "Lights": ["Office One", "Office Two", "Office Three", "Desk Strip"],
-	    "TurnOff": "true",
 	    "Duration": 1000
     }
     sendLightRequest('api/lifx', lightOff)
