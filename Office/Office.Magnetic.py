@@ -81,7 +81,8 @@ def is_between_time(time_to_check, start, end):
 def convert_time(timestring):
     return datetime.strptime(timestring, "%H:%M").time()
 
-def get_light_sequence(now):
+def get_light_config(now):
+    global lightConfigs
     # Get the first config where 
     #       the current time is between the start and end 
     #       the current day is not excluded
@@ -103,10 +104,10 @@ def get_light_sequence(now):
 
 def lightOnSequence():
     if debug: return
-    now = datetime.now()
+    now = datetime.now().time()
 
-    lightSequence = get_light_sequence(now)
-    if lightSequence is None:
+    lightConfig = get_light_config(now)
+    if lightConfig is None:
         # Give a default sequence if nothing is found.
         lightSequence = [
             {
@@ -118,7 +119,9 @@ def lightOnSequence():
                 "Brightness": 1.0,
                 "Kelvin": 2500,
             }]
-    
+    else:
+        lightSequence = lightConfig["Sequence"]
+
     sequence = { "Count": 1, "Sequence": lightSequence }
     sendLightRequest('api/lifx/sequence', sequence)
 
