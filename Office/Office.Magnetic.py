@@ -88,7 +88,15 @@ def get_light_sequence(now):
     config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (0 in c["ExcludedDays"]) == False), None)
 
     if config is None:
-        err("Could not find a valid light sequence at {now.strftime('%x %X')}!")
+        err("Could not find a valid light sequence at '{now.strftime('%x %X')}'! Reloading now!")
+        try:
+            with open("/home/pi/Project/light-config.json") as configFile:
+                lightConfigs = json.load(configFile)
+                log("File loaded!")
+        except FileNotFoundError:
+            err("'/home/pi/Project/light-config.json' could not be found!")
+            sys.exit(-1)
+        config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (0 in c["ExcludedDays"]) == False), None)
     else:
         log(f"Found config at {now.strftime('%x %X')} with description {config['Description']}")
     return config
