@@ -1,0 +1,495 @@
+[
+  {
+    "Description": "Work Lights: Office Daylight 100%",
+    "ExcludedDays": [ 5, 6 ],
+    "StartTime": "05:00",
+    "EndTime": "16:30",
+    "Sequence": [
+      {
+        "LifxCommandType": "ON",
+        "Lights": [ "Desk Strip" ],
+        "Delay": 0
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 4, 7 ],
+        "ApplyZoneImmediately": "true",
+        "Color": "white",
+        "Duration": 10000,
+        "Brightness": 0.8,
+        "Kelvin": 5500,
+        "Delay": 0
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Two" ],
+        "TurnOn": "true",
+        "Duration": 10000,
+        "Color": "white",
+        "Brightness": 1.0,
+        "Kelvin": 5500,
+        "Delay": 2000
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 0, 15 ],
+        "ApplyZoneImmediately": "true",
+        "Color": "white",
+        "Duration": 10000,
+        "Brightness": 0.8,
+        "Kelvin": 5500,
+        "Delay": 0
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Three" ],
+        "TurnOn": "true",
+        "Duration": 10000,
+        "Color": "white",
+        "Brightness": 1.0,
+        "Kelvin": 5500,
+        "Delay": 0
+      }
+    ]
+  },
+  {
+    "Description": "Weekend Normal Lights: Office Warm White 100%",
+    "ExcludedDays": [ 0, 1, 2, 3, 4 ],
+    "StartTime": "05:00",
+    "EndTime": "16:30",
+    "Sequence": [
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Desk Strip" ],
+        "TurnOn": "true",
+        "Color": "white",
+        "Kelvin": 2500,
+        "Brightness": 0.0
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office One" ],
+        "TurnOn": "true",
+        "Duration": 10000,
+        "Color": "white",
+        "Brightness": 1.0,
+        "Kelvin": 2500,
+        "Delay": 2000
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Two" ],
+        "TurnOn": "true",
+        "Duration": 8000,
+        "Color": "white",
+        "Brightness": 1.0,
+        "Kelvin": 2500,
+        "Delay": 1000
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Three" ],
+        "TurnOn": "true",
+        "Duration": 7000,
+        "Hue": 0.88,
+        "Saturation": 0.0,
+        "Brightness": 1.0,
+        "Kelvin": 2500,
+        "Delay": 0
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 15, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "red",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 14, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "orange",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 13, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "yellow",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 12, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "green",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 11, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "blue",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 10, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "indigo",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 9, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "violet",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 8, -8 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "white",
+        "Brightness": 0.0,
+        "Delay": 650
+      },
+      {
+        "LifxCommandType": "MULTI_EFFECT",
+        "Lights": [ "Desk Strip" ],
+        "EffectType": "MOVE",
+        "Direction": "TOWARDS",
+        "Speed": 3500
+      }
+    ]
+  },
+  {
+    "Description": "Normal Lights: Office Warm White 100%",
+    "ExcludedDays": [],
+    "StartTime": "16:30",
+    "EndTime": "20:00",
+    "Sequence": [
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Desk Strip" ],
+        "TurnOn": "true",
+        "Color": "white",
+        "Kelvin": 2500,
+        "Brightness": 0.0
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office One" ],
+        "TurnOn": "true",
+        "Duration": 10000,
+        "Color": "white",
+        "Brightness": 1.0,
+        "Kelvin": 2500,
+        "Delay": 2000
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Two" ],
+        "TurnOn": "true",
+        "Duration": 8000,
+        "Color": "white",
+        "Brightness": 1.0,
+        "Kelvin": 2500,
+        "Delay": 1000
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Three" ],
+        "TurnOn": "true",
+        "Duration": 7000,
+        "Hue": 0.88,
+        "Saturation": 0.0,
+        "Brightness": 1.0,
+        "Kelvin": 2500,
+        "Delay": 0
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 15, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "red",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 14, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "orange",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 13, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "yellow",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 12, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "green",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 11, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "blue",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 10, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "indigo",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 9, -1 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "violet",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 8, -8 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "white",
+        "Brightness": 0.0,
+        "Delay": 650
+      },
+      {
+        "LifxCommandType": "MULTI_EFFECT",
+        "Lights": [ "Desk Strip" ],
+        "EffectType": "MOVE",
+        "Direction": "TOWARDS",
+        "Speed": 3500
+      }
+    ]
+  },
+  {
+    "Description": "Normal Lights: Office Candlelight White 80%",
+    "ExcludedDays": [],
+    "StartTime": "20:00",
+    "EndTime": "23:00",
+    "Sequence": [
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Desk Strip" ],
+        "TurnOn": "true",
+        "Color": "white",
+        "Kelvin": 1500,
+        "Brightness": 0.0
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office One" ],
+        "TurnOn": "true",
+        "Duration": 10000,
+        "Color": "white",
+        "Brightness": 0.8,
+        "Kelvin": 1500,
+        "Delay": 2000
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Two" ],
+        "TurnOn": "true",
+        "Duration": 8000,
+        "Color": "white",
+        "Brightness": 0.8,
+        "Kelvin": 1500,
+        "Delay": 1000
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Three" ],
+        "TurnOn": "true",
+        "Duration": 7000,
+        "Hue": 0.88,
+        "Saturation": 0.0,
+        "Brightness": 0.8,
+        "Kelvin": 1500,
+        "Delay": 0
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 15, -1 ],
+        "ApplyZoneImmediately": true,
+        "Brightness": 0.8,
+        "Duration": 1000,
+        "Color": "red",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 14, -1 ],
+        "ApplyZoneImmediately": true,
+        "Brightness": 0.8,
+        "Duration": 1000,
+        "Color": "orange",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 13, -1 ],
+        "ApplyZoneImmediately": true,
+        "Brightness": 0.8,
+        "Duration": 1000,
+        "Color": "yellow",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 12, -1 ],
+        "ApplyZoneImmediately": true,
+        "Brightness": 0.8,
+        "Duration": 1000,
+        "Color": "green",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 11, -1 ],
+        "ApplyZoneImmediately": true,
+        "Brightness": 0.8,
+        "Duration": 1000,
+        "Color": "blue",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 10, -1 ],
+        "ApplyZoneImmediately": true,
+        "Brightness": 0.8,
+        "Duration": 1000,
+        "Color": "indigo",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 9, -1 ],
+        "ApplyZoneImmediately": true,
+        "Brightness": 0.8,
+        "Duration": 1000,
+        "Color": "violet",
+        "Delay": 50
+      },
+      {
+        "LifxCommandType": "MULTI_COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Zones": [ 8, -8 ],
+        "ApplyZoneImmediately": true,
+        "Duration": 1000,
+        "Color": "white",
+        "Brightness": 0.0,
+        "Delay": 650
+      },
+      {
+        "LifxCommandType": "MULTI_EFFECT",
+        "Lights": [ "Desk Strip" ],
+        "EffectType": "MOVE",
+        "Direction": "TOWARDS",
+        "Speed": 3500
+      }
+    ]
+  },
+  {
+    "Description": "Overnight Lights: Red 40%",
+    "ExcludedDays": [],
+    "StartTime": "23:00",
+    "EndTime": "05:00",
+    "Sequence": [
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Desk Strip" ],
+        "TurnOn": "true",
+        "Color": "red",
+        "Brightness": 0.0
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office One" ],
+        "TurnOn": "true",
+        "Duration": 10000,
+        "Color": "red",
+        "Brightness": 0.4,
+        "Delay": 2000
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Two" ],
+        "TurnOn": "true",
+        "Duration": 8000,
+        "Color": "red",
+        "Brightness": 0.4,
+        "Delay": 1000
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Office Three" ],
+        "TurnOn": "true",
+        "Color": "red",
+        "Duration": 7000,
+        "Brightness": 0.4,
+        "Delay": 1000
+      },
+      {
+        "LifxCommandType": "COLOR",
+        "Lights": [ "Desk Strip" ],
+        "Duration": 4500,
+        "Color": "red",
+        "Brightness": 0.4,
+        "Kelvin": 2500
+      }
+    ]
+  }
+]

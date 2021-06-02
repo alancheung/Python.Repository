@@ -48,7 +48,7 @@ isDoorOpen = False
 lastOpen = None
 lastClosed = None
 
-timestones = None
+lightConfigs = None
 work_start = None
 work_end = None
 afternoon_dimmer = None
@@ -69,10 +69,10 @@ def err(text):
 
 def is_between_time(time_to_check, start, end):
     if start > end:
-        if time_to_check > start or time_to_check < end:
+        if time_to_check >= start or time_to_check < end:
             return True
     elif start < end:
-        if time_to_check > start and time_to_check < end:
+        if time_to_check >= start and time_to_check < end:
             return True
     elif time_to_check == start:
         return True
@@ -81,147 +81,37 @@ def is_between_time(time_to_check, start, end):
 def convert_time(timestring):
     return datetime.strptime(timestring, "%H:%M").time()
 
+def get_light_sequence(now):
+    # Get the first config where 
+    #       the current time is between the start and end 
+    #       the current day is not excluded
+    config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (0 in c["ExcludedDays"]) == False), None)
+
+    if config is None:
+        err("Could not find a valid light sequence at {now.strftime('%x %X')}!")
+    else:
+        log(f"Found config at {now.strftime('%x %X')} with description {config['Description']}")
+    return config
+
 def lightOnSequence():
     if debug: return
     now = datetime.now()
 
-    # If we're in the office for work then set correct color
-    # Weekday Monday(0) - Sunday(6)
-    if now.weekday() < 5 and is_between_time(now.time(), work_start, work_end):
-        # Ignore Office One because Kelly.
-        lightOn = [{
-            # Need to turn on the strip in order to send commands. Turn on-set brightness to 0.
-            "LifxCommandType": "ON",
-            "Lights": ["Desk Strip"],
-            "Delay": 0
-        }, { # 1st Wave: Zones 4-7 & Office Two
-            "LifxCommandType": "MULTI_COLOR",
-	        "Lights": ["Desk Strip"],
-            "Zones": [4, 7],
-            "ApplyZoneImmediately": "true",
-            "Color": "white",
-	        "Duration": 10000,
-	        "Brightness": 1.0,
-	        "Kelvin": 5500,
-            "Delay": 0
-        }, {
-            "LifxCommandType": "COLOR",
-	        "Lights": ["Office Two"],
-	        "TurnOn": "true",
-	        "Duration": 10000,
-            "Color": "white",
-	        "Brightness": 1.0,
-	        "Kelvin": 5500,
-            "Delay": 2000
-        }, { # 2nd Wave: Zones 0-15 & Office Three
-            "LifxCommandType": "MULTI_COLOR",
-	        "Lights": ["Desk Strip"],
-            "Zones": [0, 15],
-            "ApplyZoneImmediately": "true",
-            "Color": "white",
-	        "Duration": 10000,
-	        "Brightness": 1.0,
-	        "Kelvin": 5500,
-            "Delay": 0
-        }, {
-            "LifxCommandType": "COLOR",
-	        "Lights": ["Office Three"],
-	        "TurnOn": "true",
-	        "Duration": 10000,
-            "Color": "white",
-	        "Brightness": 1.0,
-	        "Kelvin": 5500,
-            "Delay": 2000
-        }]
-    else:
-        if now.time() <= afternoon_dimmer:
-            brightness = 1
-        else:
-            brightness = 0.45
-
-        lightOn = [{
-            # Need to turn on the strip in order to send commands. Turn on-set brightness to 0.
-            "LifxCommandType": "ON",
-            "Lights": ["Desk Strip"],
-            "Delay": 0
-        }, { # 1st Wave: Zones 5-10 & Office One
-            "LifxCommandType": "MULTI_COLOR",
-	        "Lights": ["Desk Strip"],
-            "Zones": [5, 5],
-            "ApplyZoneImmediately": "true",
-	        "Duration": 10000,
-            "Color": "white",
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
-	        "Brightness": brightness,
-	        "Kelvin": 2500,
-            "Delay": 0
-        }, {
-            "LifxCommandType": "COLOR",
-	        "Lights": ["Office One"],
-	        "TurnOn": "true",
-	        "Duration": 10000,
-            "Color": "white",
-	        "Brightness": brightness,
-	        "Kelvin": 2500,
-            "Delay": 2000
-        }, { # 2nd Wave: Zones 2-13 (overwriting previous zones) & Office Two
-            "LifxCommandType": "MULTI_COLOR",
-	        "Lights": ["Desk Strip"],
-            "Zones": [2, 11],
-            "ApplyZoneImmediately": "true",
-	        "Duration": 8000,
-            "Color": "white",
-	        "Brightness": brightness,
-	        "Kelvin": 2500,
-            "Delay": 0
-        }, {
-            "LifxCommandType": "COLOR",
-	        "Lights": ["Office Two"],
-	        "TurnOn": "true",
-	        "Duration": 8000,
-            "Color": "white",
-	        "Brightness": brightness,
-	        "Kelvin": 2500,
-            "Delay": 1000
-        }, { # 3rd Wave: Zones 0-15 (full strip, overwriting previous) & Office Three
-            "LifxCommandType": "MULTI_COLOR",
-	        "Lights": ["Desk Strip"],
-            "Zones": [0, 15],
-            "ApplyZoneImmediately": "true",
-	        "Duration": 7000,
-            "Color": "white",
-	        "Brightness": brightness,
-	        "Kelvin": 2500,
-            "Delay": 0
-        }, {
-            "LifxCommandType": "COLOR",
-	        "Lights": ["Office Three"],
-	        "TurnOn": "true",
-	        "Duration": 7000,
-	        "Hue": 0.88,
-	        "Saturation": 0.0,
-	        "Brightness": brightness,
-	        "Kelvin": 2500,
-            "Delay": 7000
-        }, { # 4th Wave: Flash Desk Strip Green
-            "LifxCommandType": "COLOR",
-	        "Lights": ["Desk Strip"],
-	        "Duration": 500,
-            "Color": "green",
-            "Brightness": brightness,
-            "Kelvin": 5500,
-            "Delay": 1000
-        }, {
-            "LifxCommandType": "COLOR",
-	        "Lights": ["Desk Strip"],
-	        "Duration": 500,
-            "Color": "white",
-	        "Brightness": brightness,
-	        "Kelvin": 2500,
-        }]
-
-    sequence = { "Count": 1, "Sequence": lightOn }
+    lightSequence = get_light_sequence(now)
+    if lightSequence is None:
+        # Give a default sequence if nothing is found.
+        lightSequence = [
+            {
+                "LifxCommandType": "COLOR",
+                "Lights": [ "Office One", "Office Two", "Office Three", "Desk Strip" ],
+                "TurnOn": "true",
+                "Duration": 10000,
+                "Color": "white",
+                "Brightness": 1.0,
+                "Kelvin": 2500,
+            }]
+    
+    sequence = { "Count": 1, "Sequence": lightSequence }
     sendLightRequest('api/lifx/sequence', sequence)
 
 def lightOffSequence():
@@ -288,18 +178,15 @@ log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet=True)
 
 try:
-    with open("/home/pi/Project/timestones.json") as timestoneFile:
-        timestones = json.load(timestoneFile)
+    with open("/home/pi/Project/light-config.json") as configFile:
+        lightConfigs = json.load(configFile)
         log("File loaded!")
 except FileNotFoundError:
-    err("'/home/pi/Project/timestones.json' could not be found!")
+    err("'/home/pi/Project/light-config.json' could not be found!")
     sys.exit(-1)
-log(f"Timestones: {timestones}", displayWhenQuiet=True)
 
-work_start = convert_time(timestones["work_start"])
-work_end = convert_time(timestones["work_end"])
-afternoon_dimmer = convert_time(timestones["afternoon_dimmer"])
-log("timestones converted!")
+log(f"light-config: {lightConfigs}", displayWhenQuiet=True)
+log("Light Config Loaded!")
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(sensorPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)

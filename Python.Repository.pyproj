@@ -4,8 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>93e664b9-1f3d-4a5b-92c0-a927527b5608</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>Office\timeTest.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -43,6 +42,7 @@
     <Folder Include="WandTracker\WandTracker.Simple\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Office\light-config.json" />
     <Content Include="RaspberryPi\.bash_aliases" />
     <Content Include="Common\timestones.json" />
     <Content Include="Common\__pycache__\ConsoleLogger.cpython-37.pyc" />
@@ -144,6 +144,9 @@
     </Compile>
     <Compile Include="MotionCamera\DHPi.py" />
     <Compile Include="Office\jsonRequestTest.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Office\timeTest.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Office\Office.Magnetic.py" />
