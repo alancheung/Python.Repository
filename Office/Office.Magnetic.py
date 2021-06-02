@@ -67,10 +67,16 @@ def log(text, displayWhenQuiet = False):
 def err(text):
     log(text, True)
 
-def is_between_time(time, time_range):
-    if time_range[1] < time_range[0]:
-        return time >= time_range[0] or time <= time_range[1]
-    return time_range[0] <= time <= time_range[1]
+def is_between_time(time_to_check, start, end):
+    if start > end:
+        if time_to_check > start or time_to_check < end:
+            return True
+    elif start < end:
+        if time_to_check > start and time_to_check < end:
+            return True
+    elif time_to_check == start:
+        return True
+    return False
 
 def convert_time(timestring):
     return datetime.strptime(timestring, "%H:%M").time()
@@ -81,7 +87,7 @@ def lightOnSequence():
 
     # If we're in the office for work then set correct color
     # Weekday Monday(0) - Sunday(6)
-    if now.weekday() < 5 and is_between_time(now.time(), (work_start, work_end)):
+    if now.weekday() < 5 and is_between_time(now.time(), work_start, work_end):
         # Ignore Office One because Kelly.
         lightOn = [{
             # Need to turn on the strip in order to send commands. Turn on-set brightness to 0.
