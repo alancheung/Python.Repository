@@ -130,12 +130,20 @@ def lightOnSequence():
 def lightOffSequence():
     if debug: return
 
-    lightOff = {
+    lightOff = [{
+            "LifxCommandType": "MULTI_EFFECT",
+            "Lights": ["Desk Strip"],
+            "EffectType": "OFF",
+            "Direction": "TOWARDS",
+            "Speed": 0,
+            "Duration": 1000
+        }, {
         "LifxCommandType": "OFF",
 	    "Lights": ["Office One", "Office Two", "Office Three", "Desk Strip"],
 	    "Duration": 1000
-    }
-    sendLightRequest('api/lifx', lightOff)
+        }]
+    sequence = { "Count": 1, "Sequence": lightOff }
+    sendLightRequest('api/lifx/sequence', sequence)
 
 def sendAccessLog(state):
     if server != "":
