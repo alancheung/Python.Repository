@@ -81,12 +81,14 @@ def is_between_time(time_to_check, start, end):
 def convert_time(timestring):
     return datetime.strptime(timestring, "%H:%M").time()
 
-def get_light_config(now):
+def get_light_config(nowDT):
     global lightConfigs
     # Get the first config where 
     #       the current time is between the start and end 
     #       the current day is not excluded
-    config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (0 in c["ExcludedDays"]) == False), None)
+    now = nowDT.date()
+    currentDay = nowDT.weekday()
+    config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (currentDay in c["ExcludedDays"]) == False), None)
 
     if config is None:
         err("Could not find a valid light sequence at '{now.strftime('%x %X')}'! Reloading now!")
@@ -97,14 +99,14 @@ def get_light_config(now):
         except FileNotFoundError:
             err("'/home/pi/Project/light-config.json' could not be found!")
             sys.exit(-1)
-        config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (0 in c["ExcludedDays"]) == False), None)
+        config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (currentDay in c["ExcludedDays"]) == False), None)
     else:
         log(f"Found config at {now.strftime('%x %X')} with description {config['Description']}")
     return config
 
 def lightOnSequence():
     if debug: return
-    now = datetime.now().time()
+    now = datetime.now()
 
     lightConfig = get_light_config(now)
     if lightConfig is None:
