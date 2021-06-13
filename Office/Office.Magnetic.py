@@ -86,7 +86,7 @@ def get_light_config(nowDT):
     # Get the first config where 
     #       the current time is between the start and end 
     #       the current day is not excluded
-    now = nowDT.date()
+    now = nowDT.time()
     currentDay = nowDT.weekday()
     config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (currentDay in c["ExcludedDays"]) == False), None)
 
