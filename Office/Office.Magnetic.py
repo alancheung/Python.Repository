@@ -6,6 +6,7 @@ from datetime import datetime, time, timedelta
 from time import sleep
 import json
 import requests
+import adafruit_dht
 
 import sys
 import argparse
@@ -22,6 +23,7 @@ except RuntimeError:
 
 argParser = argparse.ArgumentParser()
 argParser.add_argument("-p", "--pin-sensor", type=int, default=37, help="Board GPIO pin that sensor is connected to.")
+argParser.add_argument("-d", "--pin-dht", type=int, default=17, help="GPIO pin that the DHT sensor is connected to.")
 argParser.add_argument("-o", "--open-time", type=int, default=15, help="Number of seconds since door open event to ignore lights off.")
 argParser.add_argument("-r", "--reset-time", type=int, default=3, help="Workaround for intermittent sensor disconnects. Number of seconds to ignore close event.")
 argParser.add_argument("-s", "--server", default="", help="Server address to send log messages to")
@@ -35,6 +37,7 @@ argParser.set_defaults(file=False)
 
 args = vars(argParser.parse_args())
 sensorPin = args["pin_sensor"]
+dhtPin = args["pin_dht"]
 resetTime = args["reset_time"]
 openTime = args["open_time"]
 quiet = args["quiet"]
@@ -45,8 +48,12 @@ server = args["server"]
 # ------------------------- DEFINE GLOBALS ---------------------------
 
 isDoorOpen = False
+temperature = None
+humidity = None
+
 lastOpen = None
 lastClosed = None
+lastSensor = None
 
 lightConfigs = None
 work_start = None
@@ -67,132 +74,50 @@ def log(text, displayWhenQuiet = False):
 def err(text):
     log(text, True)
 
-def is_between_time(time_to_check, start, end):
-    if start > end:
-        if time_to_check >= start or time_to_check < end:
-            return True
-    elif start < end:
-        if time_to_check >= start and time_to_check < end:
-            return True
-    elif time_to_check == start:
-        return True
-    return False
+def cToF(temperature):
+    fTemp = (temperature * (9/5)) + 32
+    return fTemp
 
-def convert_time(timestring):
-    return datetime.strptime(timestring, "%H:%M").time()
-
-def get_light_config(nowDT):
-    global lightConfigs
-    # Get the first config where 
-    #       the current time is between the start and end 
-    #       the current day is not excluded
-    now = nowDT.time()
-    currentDay = nowDT.weekday()
-    config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (currentDay in c["ExcludedDays"]) == False), None)
-
-    if config is None:
-        err("Could not find a valid light sequence at '{now.strftime('%x %X')}'! Reloading now!")
-        try:
-            with open("/home/pi/Project/light-config.json") as configFile:
-                lightConfigs = json.load(configFile)
-                log("File loaded!")
-        except FileNotFoundError:
-            err("'/home/pi/Project/light-config.json' could not be found!")
-            sys.exit(-1)
-        config = next((c for c in lightConfigs if is_between_time(now, convert_time(c["StartTime"]), convert_time(c["EndTime"])) and (currentDay in c["ExcludedDays"]) == False), None)
-    else:
-        log(f"Found config at {now.strftime('%x %X')} with description {config['Description']}")
-    return config
-
-def lightOnSequence():
-    if debug: return
-    now = datetime.now()
-
-    lightConfig = get_light_config(now)
-    if lightConfig is None:
-        # Give a default sequence if nothing is found.
-        lightSequence = [
-            {
-                "LifxCommandType": "COLOR",
-                "Lights": [ "Office One", "Office Two", "Office Three", "Desk Strip" ],
-                "TurnOn": "true",
-                "Duration": 10000,
-                "Color": "white",
-                "Brightness": 1.0,
-                "Kelvin": 2500,
-            }]
-    else:
-        lightSequence = lightConfig["Sequence"]
-
-    sequence = { "Count": 1, "Sequence": lightSequence }
-    sendLightRequest('api/lifx/sequence', sequence)
-
-def lightOffSequence():
-    if debug: return
-
-    lightOff = [{
-            "LifxCommandType": "MULTI_EFFECT",
-            "Lights": ["Desk Strip"],
-            "EffectType": "OFF",
-            "Direction": "TOWARDS",
-            "Speed": 0,
-            "Duration": 1000
-        }, {
-        "LifxCommandType": "OFF",
-	    "Lights": ["Office One", "Office Two", "Office Three", "Desk Strip"],
-	    "Duration": 1000
-        }]
-    sequence = { "Count": 1, "Sequence": lightOff }
-    sendLightRequest('api/lifx/sequence', sequence)
-
-def sendAccessLog(state):
+def sendSensorState(temp, humd, door):
     if server != "":
         try:
-            log(f'Sending access log post to {server}')
-            event = { "Name": "OfficeDoor", "State": state }
-            req = requests.post(f'{server}/api/portal', data = event)
+            log(f'Sending sensor request post to {server}')
+            command = { "office_temperature": temp, "office_humidity": humd, "office_door_state": door }
+            
+            req = requests.post(f'{server}', json = command, timeout=30)
+
             if (req.status_code != 200):
                 err(f"Request status code did not indicate success ({req.status_code})!");
         except Exception as ex:
-            err(f"Could not send log to remote due to {type(ex).__name__}!")
-
-def sendLightRequest(url, command):
-    if server != "":
-        try:
-            log(f'Sending light request post to {server}')
-            req = requests.post(f'{server}/{url}', json = command, timeout=30)
-            if (req.status_code != 200):
-                err(f"Request status code did not indicate success ({req.status_code})!");
-        except Exception as ex:
-            err(f"Could not send light request to '{server}' due to {type(ex).__name__}!")
+            err(f"Could not send sensor request to '{server}' due to {type(ex).__name__}!")
             successful = False
 
-def handleOpen():
+def handleOpen(temp, humd, door):
     log("Open:High")
-    sendAccessLog(True)
-    now = datetime.now()
 
     global lastOpen
+    now = datetime.now()
     lastOpen = now
 
-    log("Turn on lights!", True)
-    lightOnSequence()
+    sendSensorState(temp, humd, door)
 
-def handleClose():
+def handleClose(temp, humd, door):
     log("Closed:Low")
-    sendAccessLog(False)
-    now = datetime.now()
 
     global lastClosed
+    now = datetime.now()
     lastClosed = now
 
-    timeSinceOpen = now - lastOpen
-    if timeSinceOpen.seconds > openTime:
-        # Some time has passed since the door opened, turn off lights
-        log("Turn off lights!", True)
-        lightOffSequence()
-    else:
-        log(f"Not enough time ({timeSinceOpen.seconds}s) has passed to take action on CLOSE event.", True)
+    sendSensorState(temp, humd, door)
+
+def handleSensor(temp, humd, door):
+    log("Sensor")
+
+    global lastSensor
+    now = datetime.now()
+    lastSensor = now
+
+    sendSensorState(temp, humd, door)
 
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
@@ -221,6 +146,9 @@ else:
     lastClosed = datetime.now()
     log("Door initialized as CLOSED!")
 
+dht = adafruit_dht.DHT22(sensorPin)
+lastSensor = datetime.now()
+
 # ------------------------- DEFINE RUN -------------------------------
 log("Initialized!", displayWhenQuiet = True)
 log("Running...", displayWhenQuiet = True)
@@ -232,7 +160,7 @@ try:
 
             if lastState != isDoorOpen:
                 if(isDoorOpen):
-                    handleOpen()
+                    handleOpen(cToF(temperature), humdity, isDoorOpen)
                 else:
                     # listen for awhile to determine if this is a freak disconnect
                     freakDisconnect = False
@@ -245,7 +173,11 @@ try:
                     if freakDisconnect == True:
                         log(f"Ignoring close event because of sensor reset in {(datetime.now() - start).seconds}s!", True)
                     else:
-                        handleClose()
+                        handleClose(cToF(temperature), humdity, isDoorOpen)
+            if (datetime.now() - lastSensor).seconds > resetTime:
+                humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, dhtPin)
+                handleSensor(cToF(temperature), humdity, isDoorOpen)
+
         except KeyboardInterrupt:
             raise
         except Exception as runEx:
