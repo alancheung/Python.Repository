@@ -27,6 +27,7 @@ argParser.add_argument("-d", "--pin-dht", type=int, default=17, help="GPIO pin t
 argParser.add_argument("-o", "--open-time", type=int, default=15, help="Number of seconds since door open event to ignore lights off.")
 argParser.add_argument("-r", "--reset-time", type=int, default=3, help="Workaround for intermittent sensor disconnects. Number of seconds to ignore close event.")
 argParser.add_argument("-s", "--server", default="", help="Server address to send log messages to")
+argParser.add_argument("-b", "--bearer", default="", help="Bearer token")
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
 argParser.add_argument('--debug', dest='debug', action='store_true', help="Disable light actions")
 argParser.add_argument('--file', dest='file', action='store_true', help="Log to file instead of console.")
@@ -44,6 +45,7 @@ quiet = args["quiet"]
 debug = args["debug"]
 file = args["file"]
 server = args["server"]
+bearer = args["bearer"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 
@@ -82,12 +84,14 @@ def sendSensorState(temp, humd, door):
     if server != "":
         try:
             log(f'Sending sensor request post to {server}')
+            header = {'Authorization': 'Bearer ' + bearer}
             command = { "office_temperature": temp, "office_humidity": humd, "office_door_state": door }
             
-            req = requests.post(f'{server}', json = command, timeout=30)
+            log(f'Command was {command}')
+            #req = requests.post(f'{server}', json = command, headers = header, timeout=30)
 
-            if (req.status_code != 200):
-                err(f"Request status code did not indicate success ({req.status_code})!");
+            #if (req.status_code != 200):
+                #err(f"Request status code did not indicate success ({req.status_code})!");
         except Exception as ex:
             err(f"Could not send sensor request to '{server}' due to {type(ex).__name__}!")
             successful = False
@@ -122,17 +126,6 @@ def handleSensor(temp, humd, door):
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet=True)
-
-try:
-    with open("/home/pi/Project/light-config.json") as configFile:
-        lightConfigs = json.load(configFile)
-        log("File loaded!")
-except FileNotFoundError:
-    err("'/home/pi/Project/light-config.json' could not be found!")
-    sys.exit(-1)
-
-log(f"light-config: {lightConfigs}", displayWhenQuiet=True)
-log("Light Config Loaded!")
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(sensorPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
