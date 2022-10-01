@@ -28,6 +28,7 @@
     <Folder Include="MotionImages\" />
     <Folder Include="DHT22\" />
     <Folder Include="Cronjobs\" />
+    <Folder Include="Keypad\" />
     <Folder Include="RaspberryPi\" />
     <Folder Include="RaspberryPi\HeadlessBoot\" />
     <Folder Include="SoilMoisture\" />
@@ -137,6 +138,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DHT22\DHPi.DHT22.Sensor.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Keypad\RFIDOnly.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="MotionCamera\DHPi.Magnetic.py">
