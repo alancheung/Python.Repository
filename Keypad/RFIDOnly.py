@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import time
 import sys
 import asyncio
+from aiohttp import web
 
 # ------------------------- DEFINE ARGUMENTS -------------------------
 # argParser.add_argument("-a", "--min-area", type=int, default=500, help="Minimum area size before motion detection")
@@ -36,6 +37,8 @@ baseDirectory = args["base_directory"]
 authorizedUsers = {}
 authFilePath = f"{baseDirectory}/authentication.txt"
 
+routes = web.RouteTableDef()
+
 # ------------------------- DEFINE FUNCTIONS -------------------------
 def log(text, displayWhenQuiet = False):
     if displayWhenQuiet or not quiet:
@@ -53,8 +56,22 @@ def err(text):
 def alrt(text):
     log(text, True)
 
-async def tick():
-    await card_read()
+async def main():
+    # Setup webserver here
+    server = web.Application()
+    server.add_routes(routes)
+    log("Server setup!")
+
+    # Setup card reader
+    asyncio.create_task(card_read())
+    log("RFID setup!")
+
+    serverRunner = web.AppRunner(server)
+    await serverRunner.setup()
+    await web.TCPSite(serverRunner, port=7410).start()
+    log("Server runner setup!")
+
+    await asyncio.Event().wait()
 
 def check_user(id):
     ''' Check to see if param user is in the list of authorizedUsers '''
@@ -67,24 +84,29 @@ async def card_read():
     while True:
         id, username = reader.read_no_block()
 
-        handle_card_read(id, username)
+        await handle_card_read(id, username)
         await asyncio.sleep(0.5)
 
-def handle_card_read(id, username):
+async def handle_card_read(id, username):
     if id is not None:
         log(f'Read card:\n\nID: {id}\nUserName: {username}\n')
 
         authUser = check_user(str(id).strip())
         if authUser is not None:
             log(f"User {authUser} was allowed to enter")
-            open_sesame()
+            await open_sesame()
             # TODO send to HA
 
-def open_sesame():
+async def open_sesame():
     ''' Connect NC relay connections and open door. '''
     GPIO.output(relayPin, GPIO.HIGH)
-    time.sleep(3)
+    await asyncio.sleep(3)
     GPIO.output(relayPin, GPIO.LOW)
+
+@routes.post('/')
+async def web_post_request(request):
+    log(request)
+    return web.Response(text="asdasdsd")
 
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
@@ -113,8 +135,8 @@ log("Initialized!", displayWhenQuiet = True)
 log("Running...", displayWhenQuiet = True)
 try:
     log("Run")
-    asyncio.run(tick())
+    asyncio.run(main())
 except KeyboardInterrupt:
     log("KeyboardInterrupt caught! Cleaning up...")
 finally:
-        GPIO.cleanup()
+    GPIO.cleanup()
