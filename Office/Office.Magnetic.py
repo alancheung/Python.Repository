@@ -6,6 +6,7 @@ from datetime import datetime, time, timedelta
 from time import sleep
 import json
 import requests
+import board
 import adafruit_dht
 
 import sys
@@ -22,12 +23,11 @@ except RuntimeError:
 #argParser.set_defaults(interactive=True)
 
 argParser = argparse.ArgumentParser()
-argParser.add_argument("-p", "--pin-sensor", type=int, default=37, help="Board GPIO pin that sensor is connected to.")
-argParser.add_argument("-d", "--pin-dht", type=int, default=17, help="GPIO pin that the DHT sensor is connected to.")
+argParser.add_argument("-p", "--pin-sensor", type=int, default=26, help="BCM GPIO pin that sensor is connected to.")
 argParser.add_argument("-o", "--open-time", type=int, default=15, help="Number of seconds since door open event to ignore lights off.")
 argParser.add_argument("-r", "--reset-time", type=int, default=3, help="Workaround for intermittent sensor disconnects. Number of seconds to ignore close event.")
+argParser.add_argument("-t", "--sensor-time", type=int, default=60, help="Number of seconds since last sensor before getting new temp/humidity data.")
 argParser.add_argument("-s", "--server", default="", help="Server address to send log messages to")
-argParser.add_argument("-b", "--bearer", default="", help="Bearer token")
 argParser.add_argument('--quiet', dest='quiet', action='store_true', help="Disable logging")
 argParser.add_argument('--debug', dest='debug', action='store_true', help="Disable light actions")
 argParser.add_argument('--file', dest='file', action='store_true', help="Log to file instead of console.")
@@ -38,20 +38,22 @@ argParser.set_defaults(file=False)
 
 args = vars(argParser.parse_args())
 sensorPin = args["pin_sensor"]
-dhtPin = args["pin_dht"]
 resetTime = args["reset_time"]
 openTime = args["open_time"]
+sensorTime = args["sensor_time"]
 quiet = args["quiet"]
 debug = args["debug"]
 file = args["file"]
 server = args["server"]
-bearer = args["bearer"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
 
-isDoorOpen = False
+global humidity
+global temperature
 temperature = None
 humidity = None
+
+isDoorOpen = False
 
 lastOpen = None
 lastClosed = None
@@ -81,17 +83,17 @@ def cToF(temperature):
     return fTemp
 
 def sendSensorState(temp, humd, door):
-    if server != "":
+    if server != "" and temp is not None and humd is not None and door is not None:
         try:
             log(f'Sending sensor request post to {server}')
             header = {'Authorization': 'Bearer ' + bearer}
-            command = { "office_temperature": temp, "office_humidity": humd, "office_door_state": door }
+            command = { "office_temperature": round(temp, 1), "office_humidity": humd, "office_door_state": door }
             
             log(f'Command was {command}')
-            #req = requests.post(f'{server}', json = command, headers = header, timeout=30)
+            req = requests.post(f'{server}', json=command, headers=header, timeout=30)
 
-            #if (req.status_code != 200):
-                #err(f"Request status code did not indicate success ({req.status_code})!");
+            if (req.status_code != 200):
+                err(f"Request status code did not indicate success ({req.status_code})!");
         except Exception as ex:
             err(f"Could not send sensor request to '{server}' due to {type(ex).__name__}!")
             successful = False
@@ -127,7 +129,16 @@ def handleSensor(temp, humd, door):
 log("Initializing...", displayWhenQuiet = True)
 log(f"Args: {args}", displayWhenQuiet=True)
 
-GPIO.setmode(GPIO.BOARD)
+with open('/home/pi/Project/bearer.b') as f:
+    bearer = f.read()
+
+if (bearer is not None):
+    log(f'Bearer initialized!')
+else:
+    err("'/home/pi/Project/bearer.b' could not be found!")
+    sys.exit(-1)
+
+GPIO.setmode(GPIO.BCM)
 GPIO.setup(sensorPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 log("GPIO initialized!")
 
@@ -139,7 +150,7 @@ else:
     lastClosed = datetime.now()
     log("Door initialized as CLOSED!")
 
-dht = adafruit_dht.DHT22(sensorPin)
+dht = adafruit_dht.DHT22(board.D17)
 lastSensor = datetime.now()
 
 # ------------------------- DEFINE RUN -------------------------------
@@ -153,7 +164,7 @@ try:
 
             if lastState != isDoorOpen:
                 if(isDoorOpen):
-                    handleOpen(cToF(temperature), humdity, isDoorOpen)
+                    handleOpen(cToF(temperature), humidity, isDoorOpen)
                 else:
                     # listen for awhile to determine if this is a freak disconnect
                     freakDisconnect = False
@@ -166,11 +177,16 @@ try:
                     if freakDisconnect == True:
                         log(f"Ignoring close event because of sensor reset in {(datetime.now() - start).seconds}s!", True)
                     else:
-                        handleClose(cToF(temperature), humdity, isDoorOpen)
-            if (datetime.now() - lastSensor).seconds > resetTime:
-                humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, dhtPin)
-                handleSensor(cToF(temperature), humdity, isDoorOpen)
-
+                        handleClose(cToF(temperature), humidity, isDoorOpen)
+            if (datetime.now() - lastSensor).seconds > sensorTime:
+                # Update sensor time before reading so that if the reading errors we don't spam the sensor.
+                # Adds dependability on sensorTime > refresh rate (~2 seconds) for DHT22.
+                lastSensor = datetime.now()
+                
+                humidity = dht.humidity
+                temperature = dht.temperature
+                log(f"Temp: {temperature}  //  Humd: {humidity}")
+                handleSensor(cToF(temperature), humidity, isDoorOpen)
         except KeyboardInterrupt:
             raise
         except Exception as runEx:
@@ -182,4 +198,5 @@ except Exception as ex:
 finally:
     err("Cleaning up...")
     GPIO.cleanup()
+    dht.exit()
     err("GPIO.cleanup() called!")
