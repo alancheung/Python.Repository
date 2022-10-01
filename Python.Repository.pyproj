@@ -143,6 +143,9 @@
     <Compile Include="Keypad\RFIDOnly.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Keypad\WriteCard.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MotionCamera\DHPi.Magnetic.py">
       <SubType>Code</SubType>
     </Compile>
