@@ -45,7 +45,7 @@ def log(text, displayWhenQuiet = False):
         now = datetime.now().strftime("%x %X")
         message = f"{now}: {text}"
         if logFileName is not None:
-            with open(f"/home/pi/Project/{logFileName}", "a") as fout:
+            with authenticate(f"/home/pi/Project/{logFileName}", "a") as fout:
                 fout.write(f"{message}\n")
         else:
             print(message)
@@ -55,6 +55,61 @@ def err(text):
 
 def alrt(text):
     log(text, True)
+
+def check_user(id):
+    ''' Check to see if param user is in the list of authorizedUsers '''
+    if id in authorizedUsers:
+        return authorizedUsers[id]
+    else:
+        return None
+    
+async def card_read():
+    while True:
+        id, username = reader.read_no_block()
+
+        await handle_card_read(id, username)
+        await asyncio.sleep(0.5)
+
+async def authenticate(id):
+    ''' Connect NC relay connections and open door. '''
+    authUser = check_user(str(id).strip())
+
+    return authUser
+
+async def open_sesame():
+    GPIO.output(relayPin, GPIO.HIGH)
+    await asyncio.sleep(3)
+    GPIO.output(relayPin, GPIO.LOW)
+
+async def handle_card_read(id, username):
+    if id is not None:
+        log(f'Read card:\n\nID: {id}\nUserName: {username}\n')
+        authUser = await authenticate(id)
+        if authUser is not None:
+            log(f"User {authUser} was allowed to enter")
+
+            await open_sesame()
+            # TODO send to HA
+    else:
+        return None
+
+@routes.post('/')
+async def handle_web_post_request(request):
+    if request.can_read_body:
+        reqUser = await request.text()
+        authUser = await authenticate(reqUser)
+
+        if authUser is None:
+            return web.HTTPUnauthorized(text=f"User '{reqUser}' is not authenticated!")
+        else:
+            log(f"User {authUser} was allowed to enter")
+
+            await open_sesame()
+
+            # TODO send to HA
+            return web.Response(text="authenticated")
+    else:
+        return web.HTTPClientError(text="No data present to authenticate!")
 
 async def main():
     # Setup webserver here
@@ -72,41 +127,6 @@ async def main():
     log("Server runner setup!")
 
     await asyncio.Event().wait()
-
-def check_user(id):
-    ''' Check to see if param user is in the list of authorizedUsers '''
-    if id in authorizedUsers:
-        return authorizedUsers[id]
-    else:
-        return None
-    
-async def card_read():
-    while True:
-        id, username = reader.read_no_block()
-
-        await handle_card_read(id, username)
-        await asyncio.sleep(0.5)
-
-async def handle_card_read(id, username):
-    if id is not None:
-        log(f'Read card:\n\nID: {id}\nUserName: {username}\n')
-
-        authUser = check_user(str(id).strip())
-        if authUser is not None:
-            log(f"User {authUser} was allowed to enter")
-            await open_sesame()
-            # TODO send to HA
-
-async def open_sesame():
-    ''' Connect NC relay connections and open door. '''
-    GPIO.output(relayPin, GPIO.HIGH)
-    await asyncio.sleep(3)
-    GPIO.output(relayPin, GPIO.LOW)
-
-@routes.post('/')
-async def web_post_request(request):
-    log(request)
-    return web.Response(text="asdasdsd")
 
 # ------------------------- DEFINE INITIALIZE ------------------------
 log("Initializing...", displayWhenQuiet = True)
