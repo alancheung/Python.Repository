@@ -78,7 +78,7 @@ async def authenticate(id):
 
 async def open_sesame():
     GPIO.output(relayPin, GPIO.HIGH)
-    await asyncio.sleep(3)
+    time.sleep(3)
     GPIO.output(relayPin, GPIO.LOW)
 
 async def handle_card_read(id, username):
