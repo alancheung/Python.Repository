@@ -9,6 +9,7 @@ from mfrc522 import SimpleMFRC522, MFRC522
 from datetime import datetime, timedelta
 import time
 import sys
+import asyncio
 
 # ------------------------- DEFINE ARGUMENTS -------------------------
 # argParser.add_argument("-a", "--min-area", type=int, default=500, help="Minimum area size before motion detection")
@@ -32,8 +33,6 @@ relayPin = args["relay_pin"]
 baseDirectory = args["base_directory"]
 
 # ------------------------- DEFINE GLOBALS ---------------------------
-lastRead = datetime.now()
-
 authorizedUsers = {}
 authFilePath = f"{baseDirectory}/authentication.txt"
 
@@ -54,17 +53,32 @@ def err(text):
 def alrt(text):
     log(text, True)
 
-def check_user(id, username):
+async def tick():
+    await card_read()
+
+def check_user(id):
     ''' Check to see if param user is in the list of authorizedUsers '''
     if id in authorizedUsers:
         return authorizedUsers[id]
     else:
         return None
+    
+async def card_read():
+    while True:
+        id, username = reader.read_no_block()
+
+        handle_card_read(id, username)
+        await asyncio.sleep(0.5)
 
 def handle_card_read(id, username):
-    if check_user(id) is not None:
-        open_sesame()
-        # TODO send to HA
+    if id is not None:
+        log(f'Read card:\n\nID: {id}\nUserName: {username}\n')
+
+        authUser = check_user(str(id).strip())
+        if authUser is not None:
+            log(f"User {authUser} was allowed to enter")
+            open_sesame()
+            # TODO send to HA
 
 def open_sesame():
     ''' Connect NC relay connections and open door. '''
@@ -99,15 +113,7 @@ log("Initialized!", displayWhenQuiet = True)
 log("Running...", displayWhenQuiet = True)
 try:
     log("Run")
-    while True:
-        if (datetime.now() - lastRead).seconds >= readDebounce:
-            id, username = reader.read()
-            log(f'Read card:\n\nID: {id}\nUserName: {username}')
-
-            handle_card_read(id, username)
-
-            # Set time after the relay triggers since there's a sleep in there.
-            lastRead = datetime.now()
+    asyncio.run(tick())
 except KeyboardInterrupt:
     log("KeyboardInterrupt caught! Cleaning up...")
 finally:
